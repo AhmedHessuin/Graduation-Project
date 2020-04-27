@@ -21,7 +21,7 @@ This python function takes 2 arguments : The module name as a string , and the l
   * Notes: 
     * The number of bits of the input/output in all transactions must be the same in order for the function to work .
 
-    * Runnability: Not Runnable -to be used in the main code 
+  * Runnability: Not Runnable -to be used in the main code 
 
 * node.py
   * File Role: Defines class 'Node' which defines a state to be used in transactionToVerilog.py for verilog code creation
