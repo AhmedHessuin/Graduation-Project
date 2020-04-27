@@ -28,7 +28,7 @@ This python function takes 2 arguments : The module name as a string , and the l
   * Runnability: Not Runnable - used only in transactionToVerilog.py
 * xmlToverilog.py
   * File Role: Generates the Verilog code from detected transactions which are saved in XML format
-  * Runnability: can be run from a comand line with an optional path argument (--path) determining the XML file path.(if path isn't supplied it is assumed that the XML file is in the working directory with name a.xml)
+  * Runnability: can be run from a command line with an optional path argument (--path) determining the XML file path.(if path isn't supplied it is assumed that the XML file is in the working directory with name a.xml)
   
 # Project Algorithm Flow:
 ----------------------------
