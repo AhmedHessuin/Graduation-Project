@@ -80,7 +80,7 @@ def transactionToVerilog(moduleName="Module_0" , listOfTransactions=[]):
                 output_file = output_file + ')\n'
                 output_file = output_file + '\t\tbegin\n'
                 output_file = output_file + '\t\t\tOUTPUT = ' + len(state.state_conditions[index][1])+"'b" +str(state.state_conditions[index][1])
-                output_file = output_file + '\t\t\tstate = state_'+str(dest)+';\n'
+                output_file = output_file + ';\n\t\t\tstate = state_'+str(dest)+';\n'
                 output_file = output_file + '\t\tend\n'
         output_file = output_file + '\tend\n\n'
     output_file = output_file + ' endcase\nendmodule\n'
