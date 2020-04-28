@@ -55,13 +55,16 @@ def transactionToVerilog(moduleName="Module_0" , listOfTransactions=[]):
         i=i+1
     output_file = output_file.rstrip(' ,\n ')
     output_file = output_file + ' ;\n'
-    output_file = output_file + 'input\n\tclk,\n\t['
-    output_file = output_file +str(len(states[0].state_conditions[0][0])-1)
-    output_file = output_file + ':0]INPUT;\n'
+    output_file = output_file + 'input\n\tclk;\ninput '
+    
+    if not len(states[0].state_conditions[0][0]) == 1
+        output_file = output_file +'['+str(len(states[0].state_conditions[0][0])-1)+':0]'
+    output_file = output_file + 'INPUT;\n'
 
-    output_file = output_file + 'output reg\t['
-    output_file = output_file +str(len(states[0].state_conditions[0][1])-1)
-    output_file = output_file + ':0] OUTPUT;'
+    output_file = output_file + 'output reg\t'
+    if not len(states[0].state_conditions[0][1]) == 1
+        output_file = output_file +'['+str(len(states[0].state_conditions[0][1])-1)+':0]'
+    output_file = output_file + ' OUTPUT;'
 
     output_file = output_file + ' reg state;\n'
     output_file = output_file + '\n initial\t state = state_' + str(states[0].state_id)+';\n'
