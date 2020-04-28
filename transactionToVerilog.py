@@ -8,7 +8,6 @@ def transactionToVerilog(moduleName="Module_0" , listOfTransactions=[]):
     for transaction in listOfTransactions:
         tempSrc=0
         tempDst=0
-        stateCndtn
         srcExist=False
         dstExist=False
 
@@ -76,10 +75,10 @@ def transactionToVerilog(moduleName="Module_0" , listOfTransactions=[]):
         for index , dest in enumerate(state.connected_nodes):
             if not state.connected_nodes_type[index] == conn_node_types.Source:
                 output_file = output_file + '\t\tif(INPUT == '
-                output_file = output_file +len(state.state_conditions[index][0])+"'b" +str(state.state_conditions[index][0])
+                output_file = output_file +str(len(state.state_conditions[index][0]))+"'b" +str(state.state_conditions[index][0])
                 output_file = output_file + ')\n'
                 output_file = output_file + '\t\tbegin\n'
-                output_file = output_file + '\t\t\tOUTPUT = ' + len(state.state_conditions[index][1])+"'b" +str(state.state_conditions[index][1])
+                output_file = output_file + '\t\t\tOUTPUT = ' + str(len(state.state_conditions[index][1]))+"'b" +str(state.state_conditions[index][1])
                 output_file = output_file + ';\n\t\t\tstate = state_'+str(dest)+';\n'
                 output_file = output_file + '\t\tend\n'
         output_file = output_file + '\tend\n\n'
