@@ -3,10 +3,6 @@
 ----------------------------
 
 # Project Files:
-* file name
-* file name
-* .
-* .
 * transactionToVerilog.py 
   * File Role:Defines a function with the same name that returns the Verilog code as a string as a replacement to xmlToverilog.py 
 This python function takes 2 arguments : The module name as a string , and the list of transactions describing the finite state   machine diagram . 
