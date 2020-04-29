@@ -247,7 +247,7 @@ def exportPredictedImage(self):
                                               options=options)
 
     if fileName:
-        image_operations.set_image_output_path(fileName)
+        image_operations.set_output_path(fileName)
         image_operations.export_image()
 
 
