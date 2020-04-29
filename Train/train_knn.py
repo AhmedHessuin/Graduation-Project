@@ -1,6 +1,7 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-__author__ = 'yan9yu'
+'''
+modified file 
+'''
+__author__ = 'ahmed hessuin'
 
 import sys
 import numpy as np
