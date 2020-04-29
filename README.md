@@ -32,6 +32,7 @@ This python function takes 2 arguments : The module name as a string , and the l
   * generate anchors for the modules based on the labels and the truth box.
 * train_knn.py
   * train k nearest neighborhood module for number detection.
+  
 -------------------------------------------------------- backend files ---------------------------------------------------------------
 * predict.py 
   * this file is the core file for prediction, as this call and connect other backend files to predict and draw the predicted anchors on        the image.
