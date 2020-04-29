@@ -29,6 +29,30 @@ This python function takes 2 arguments : The module name as a string , and the l
 * xmlToverilog.py
   * File Role: Generates the Verilog code from detected transactions which are saved in XML format
   * Runnability: can be run from a command line with an optional path argument (--path) determining the XML file path.(if path isn't supplied it is assumed that the XML file is in the working directory with name a.xml)
+----------------------------------------------------------- train files -------------------------------------------------------------
+* Train.py 
+  *to train the yolo modules.
+*gen_anchors.py
+  *generate anchors for the modules based on the labels and the truth box.
+*train_knn.py
+  *train k nearest neighborhood module for number detection.
+-------------------------------------------------------- backend files ---------------------------------------------------------------
+*predict.py 
+  *this file is the core file for prediction, as this call and connect other backend files to predict and draw the predicted anchors on        the image.
+  * Runnability: can be run, need image named test.png and will generate verilog code and the predicted image.
+*image_operations.py 
+  *this file do all operations on image like : draw on the image, add element to draw, remove element from the image, load the original image.
+*matching.py
+  *this file for connecting the anchors, this file has the algorithm of searching and defining which anchors connected together, it has function to define the states and its condition as a transaction, if the matching passed this file gives permission for Verilog to generate.
+*anchor_sub_file.py 
+  *this file contain preprocessing on part of the image to detect the numbers.
+  *this file detect numbers.
+*bbox.py 
+  *this file predict and recognize the anchors on the image based on the module.
+*xml_creator.py
+  *work with tree_build_function.py to create xml files.
+  
+-----------------------------------------------------------------------------------------------------------------------------------
   
 # Project Algorithm Flow:
 ----------------------------
