@@ -128,8 +128,7 @@ def get_inputs_outputs_slash_for_state_condition(image,xmin,ymin,label):
                 number_only_image = preprocessed_image[y:y + h, x:x + w]  # take this contour from the image
                 number_only_image_resized = cv2.resize(number_only_image, (shrunk_value, shrunk_value))# resize this contour with the shrunk value
                 kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))#kernal 3 x 3 cross
-                number_only_image_resized = cv2.dilate(number_only_image_resized,kernel,iterations=1)#dilate the image by 1
-                number_only_image_resized = cv2.morphologyEx(number_only_image_resized, cv2.MORPH_CLOSE, kernel)#use closing method on the image
+                number_only_image_resized = cv2.dilate(number_only_image_resized,kernel,iterations=1)
                 number_only_image_resized = number_only_image_resized.reshape((1, shrunk_value*shrunk_value))#changing the shape for the model config-> shrunk_value*shrunk_value
                 number_only_image_resized = np.float32(number_only_image_resized) # image must be float np array
                 retval, results, neigh_resp, dists = model.findNearest(number_only_image_resized, k=3)# use the knn model with k= 3 to predict the numbers
