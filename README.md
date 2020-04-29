@@ -51,7 +51,12 @@ This python function takes 2 arguments : The module name as a string , and the l
   * this file predict and recognize the anchors on the image based on the module.
 * xml_creator.py
   * work with tree_build_function.py to create xml files.
-  
+* data_class.py
+  * this file contain all the data types used on backend files ( except on the bbox.py).
+* object_file.py
+  * this file contain all the global and shared objects between files, a core file that every file call.
+* log_config.py
+  * this file contain the log format for the gui.
 -----------------------------------------------------------------------------------------------------------------------------------
   
 # Project Algorithm Flow:
