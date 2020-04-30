@@ -27,33 +27,40 @@ This python function takes 2 arguments : The module name as a string , and the l
   * Runnability: can be run from a command line with an optional path argument (--path) determining the XML file path.(if path isn't supplied it is assumed that the XML file is in the working directory with name a.xml)
 ----------------------------------------------------------- train files -------------------------------------------------------------
 * Train.py 
-  *to train the yolo modules.
+  * File Role: to train the yolo modules.
 * gen_anchors.py
-  * generate anchors for the modules based on the labels and the truth box.
+  * File Role: generate anchors for the modules based on the labels and the truth box.
 * train_knn.py
-  * train k nearest neighborhood module for number detection.
+  * File Role: train k nearest neighborhood module for number detection.
   
 -------------------------------------------------------- backend files ---------------------------------------------------------------
 * predict.py 
-  * this file is the core file for prediction, as this call and connect other backend files to predict and draw the predicted anchors on        the image.
+  * File Role: this file is the core file for prediction, as this call and connect other backend files to predict and draw the predicted anchors on the image.
   * Runnability: can be run, need image named test.png and will generate verilog code and the predicted image.
 * image_operations.py 
-  * this file do all operations on image like : draw on the image, add element to draw, remove element from the image, load the original image.
+  * File Role: this file do all operations on image like : draw on the image, add element to draw, remove element from the image, load the original image.
 * matching.py
-  * this file for connecting the anchors, this file has the algorithm of searching and defining which anchors connected together, it has function to define the states and its condition as a transaction, if the matching passed this file gives permission for Verilog to generate.
+  * File Role: this file for connecting the anchors, this file has the algorithm of searching and defining which anchors connected together, it has function to define the states and its condition as a transaction, if the matching passed this file gives permission for Verilog to generate.
+  * Runnability: can't run, full of functions only
 * anchor_sub_file.py 
-  * this file contain preprocessing on part of the image to detect the numbers.
+  * File Role: this file contain preprocessing on part of the image to detect the numbers.
   * this file detect numbers.
+  * Runnability: can't run, full of functions only
 * bbox.py 
-  * this file predict and recognize the anchors on the image based on the module.
+  * File Role: this file predict and recognize the anchors on the image based on the module.
+  * Runnability: can't run, full of functions only
 * xml_creator.py
-  * work with tree_build_function.py to create xml files.
+  * File Role: work with tree_build_function.py to create xml files.
+  * Runnability: can't run, full of functions only
 * data_class.py
-  * this file contain all the data types used on backend files ( except on the bbox.py).
+  * File Role: this file contain all the data types used on backend files ( except on the bbox.py).
+  * Runnability: can't run, full of classes only
 * object_file.py
-  * this file contain all the global and shared objects between files, a core file that every file call.
+  * File Role: this file contain all the global and shared objects between files, a core file that every file call.
+  * Runnability: can't run, full of objects only
 * log_config.py
-  * this file contain the log format for the gui.
+  * File Role: this file contain the log format for the gui.
+  * Runnability: can't run, full of functions only
 -----------------------------------------------------------------------------------------------------------------------------------
   
 # Project Algorithm Flow:
