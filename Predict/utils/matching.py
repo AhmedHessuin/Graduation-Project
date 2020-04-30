@@ -346,7 +346,7 @@ def connect_transactions():
 
     '''
 
-    connected_transaction_as_string = "\n" # the output text
+    connected_transaction_as_string = "check transactions done :- \n" # the output text
     dump_id=0 # the dump id for a state without id
     object_file.transaction=[]# reset transaction before using this function
     object_file.valid_verilog = False
