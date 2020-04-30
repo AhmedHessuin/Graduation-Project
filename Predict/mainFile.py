@@ -232,6 +232,7 @@ def CheckConnectionValidation(self):
     elif (a == 1):
         self.textEdit.setText(self.textEdit.toPlainText() + b)
         self.textEdit.moveCursor(QtGui.QTextCursor.End)
+        self.set_Predicted_img()
         self.GenerateVerilog.setEnabled(True)
 
 
@@ -300,6 +301,7 @@ def Predicted_img_mousePress(self, event):
                 text = (image_operations.remove_element(remove_header, remove_element))
                 self.textEdit.setText(self.textEdit.toPlainText() + text)
                 self.textEdit.moveCursor(QtGui.QTextCursor.End)
+                self.GenerateVerilog.setEnabled(False)
             self.set_Predicted_img()
 
     if (self.Predicted_AddAnchor.isChecked()):
@@ -357,6 +359,7 @@ def Predicted_img_mouseRelease(self, event):
 
             self.textEdit.setText(self.textEdit.toPlainText() + text)
             self.textEdit.moveCursor(QtGui.QTextCursor.End)
+            self.GenerateVerilog.setEnabled(False)
             self.set_Predicted_img()
 
 def set_Predicted_img(self):
