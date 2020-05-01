@@ -86,6 +86,7 @@ This python function takes 2 arguments : The module name as a string , and the l
 * behavior two, the user use the gui
   
 ----------------------------
-
+# To Run the project run mainfile.py
+----------------------------
 # Project Demo:
  * [Demo Link](https://drive.google.com/open?id=1DU-FfDiuBAhmYHOsoOOwWzaueoBSbYg8)
