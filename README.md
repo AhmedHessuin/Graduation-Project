@@ -64,6 +64,23 @@ This python function takes 2 arguments : The module name as a string , and the l
 -----------------------------------------------------------------------------------------------------------------------------------
   
 # Project Algorithm Flow:
+
+* behavior one, the user use predict.py
+  * the predict.py will call load weight function, to load the module weights.
+  * then call the predict function, after loading the weights, this function predict every label by calling bbox.py file
+  * the bbox.py call sub_anchor.py  when it predict state condition or state, to predict and allocate where is the numbers in the state conditions and the states
+  * after predicting where is the anchors on the image and the label for every anchor, now call the image_operations.py and draw this anchors 
+  * after drawing the anchors, call file matching.py, to connect every anchor with another intersected anchor, py connect anchors function
+  * after getting the relations with the anchors, call connect the transactions function.
+  * connect transactions function, get every arrow head then get which state it's connected to the arrow head, marking this state as the dst state, search for the arrow connected to this arrow head, getting from this arrow the src state and the state condition
+  * the state condition get the predicted numbers inside it, sorting them from left to right and get the state condition input/output
+  * the src state and dst state, also get the predicted numbers inside it and mark it as the src,dst state id
+  * checking algorithm for errors, if there is no src state or dst state or there is no state condition
+  * return error msg to the user if there is an error, or return log msg in the screen of the states transactions and set valid verilog code to be true
+  * after checking and setting the valid to be true, go to transactions_to_verilog.py to write on file the relations of the state based on connect transactions algorithm.
+  
+  
+  
 ----------------------------
 
 # Project Demo:
