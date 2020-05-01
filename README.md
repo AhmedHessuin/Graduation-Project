@@ -88,5 +88,11 @@ This python function takes 2 arguments : The module name as a string , and the l
 ----------------------------
 # To Run the project run predict/mainfile.py
 ----------------------------
+# Used libraries:
+ * Tensorflow-gpu version 1.14
+ * Keras version 2.3.1
+ * cuda 10.0
+ * cudnn
+ * OpenCv
 # Project Demo:
  * [Demo Link](https://drive.google.com/open?id=1DU-FfDiuBAhmYHOsoOOwWzaueoBSbYg8)
