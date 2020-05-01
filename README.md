@@ -1,11 +1,11 @@
 # Graduaiton-Project
 # About Project:
 # training files
-* training images
+* training images and annotations
   * https://drive.google.com/open?id=1NBn4ybLnFkzkD88xYLDjqtTPc4-8mSk4, train images folder 
   * https://drive.google.com/open?id=1frt7EfAvlOONhB8-DsDOBWohsjNW0W7j, train annotations folder
   * https://drive.google.com/open?id=1pL-tGmqbG-LTmumjL9hiej2s04obpi9W, original train images in high resolutions
-  * https://drive.google.com/open?id=1WfFPYJm3aJwjzHs17yPwX-4LiHNsOQdH, number train images folder
+  * https://drive.google.com/open?id=1WfFPYJm3aJwjzHs17yPwX-4LiHNsOQdH, number train images folder,annotations is built in.
   * for testing the module on the training example, use original train image because of the resolution.
 ----------------------------
 
