@@ -298,30 +298,42 @@ def error_checking(src_element,dst_element,con_element,src_element_id,dst_elemen
     error_msg = "the black anchors indicates where is the error\nit must have src_state, dst_state, condition.\n"
     high_light_errors_on_the_image = []
     dump_copy_of_the_image = object_file.image.copy()  # copy of the original image
+    src_test=-1
+    dst_test=-1
+    con_test=-1
+    input_output_test=-1
     # check for error conditions
-    if src_element == None or dst_element == None or con_element == None:
-        if src_element != None:
-            src_element_id = sort_anchors(src_element_id)  # sort the list
-            transaction_src_id = get_state_id_as_string(src_element_id)  # get the id as string
-            high_light_errors_on_the_image.append({"xmin": src_element.get_xmin(), "xmax": src_element.get_xmax(),
-                                                   "ymin": src_element.get_ymin(), "ymax": src_element.get_ymax()})
-            error_msg = error_msg + "it has src state id =  " + str(transaction_src_id) + "\n"
-        if dst_element != None:
-            dst_element_id = sort_anchors(dst_element_id)
-            transaction_dst_id = get_state_id_as_string(dst_element_id)
-            error_msg = error_msg + "it has dst state id = " + str(transaction_dst_id) + "\n"
-            high_light_errors_on_the_image.append({"xmin": dst_element.get_xmin(), "xmax": dst_element.get_xmax(),
-                                                   "ymin": dst_element.get_ymin(), "ymax": dst_element.get_ymax()})
+    
+    if src_element != None:
+        src_element_id = sort_anchors(src_element_id)  # sort the list
+        transaction_src_id = get_state_id_as_string(src_element_id)  # get the id as string
+        high_light_errors_on_the_image.append({"xmin": src_element.get_xmin(), "xmax": src_element.get_xmax(),
+                                               "ymin": src_element.get_ymin(), "ymax": src_element.get_ymax()})
+        error_msg = error_msg + "it has src state id =  " + str(transaction_src_id) + "\n"
+        src_test=1
+        
+    if dst_element != None:
+        dst_element_id = sort_anchors(dst_element_id)
+        transaction_dst_id = get_state_id_as_string(dst_element_id)
+        error_msg = error_msg + "it has dst state id = " + str(transaction_dst_id) + "\n"
+        high_light_errors_on_the_image.append({"xmin": dst_element.get_xmin(), "xmax": dst_element.get_xmax(),
+                                               "ymin": dst_element.get_ymin(), "ymax": dst_element.get_ymax()})
+        dst_test=1
 
-        if con_element != None:
-            con_element_input_output = sort_anchors(con_element_input_output)
-            transaction_input, transaction_output = get_input_get_output(con_element_input_output)
-            error_msg = error_msg + "it has condition = " + transaction_input + " / " + transaction_output + "\n"
-            high_light_errors_on_the_image.append({"xmin": con_element.get_xmin(), "xmax": con_element.get_xmax(),
-                                                   "ymin": con_element.get_ymin(), "ymax": con_element.get_ymax()})
+    if con_element != None:
+        con_element_input_output = sort_anchors(con_element_input_output)
+        transaction_input, transaction_output = get_input_get_output(con_element_input_output)
+        error_msg = error_msg + "it has condition = " + transaction_input + " / " + transaction_output + "\n"
+        high_light_errors_on_the_image.append({"xmin": con_element.get_xmin(), "xmax": con_element.get_xmax(),
+                                               "ymin": con_element.get_ymin(), "ymax": con_element.get_ymax()})
 
-
-
+        con_test=1
+        if transaction_input == "" or transaction_output == "":
+            error_msg=error_msg + "it is missing input or output"+"\n"
+        else:
+            input_output_test=1        
+            
+    if input_output_test ==-1 or src_test==-1 or dst_test==-1 or con_test==-1:
         for hightlight in high_light_errors_on_the_image:
             cv2.rectangle(img=dump_copy_of_the_image, pt1=(hightlight["xmin"], hightlight["ymin"]),
 
