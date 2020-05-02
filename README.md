@@ -7,6 +7,7 @@
   * https://drive.google.com/open?id=1pL-tGmqbG-LTmumjL9hiej2s04obpi9W, original train images in high resolutions
   * https://drive.google.com/open?id=1WfFPYJm3aJwjzHs17yPwX-4LiHNsOQdH, number train images folder,annotations is built in.
   * for testing the module on the training example, use original train image because of the resolution.
+  * common error, if image faild to load or predict using the gui, change it to .jpg or another format
 ----------------------------
 
 # Project Files:
