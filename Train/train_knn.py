@@ -47,7 +47,7 @@ for i in range(12):
 
     contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    keys = [i for i in range(48, 58)]
+
 
     contours = sorted(contours, key=lambda ctr: cv2.boundingRect(ctr)[0])
     for cnt in contours:
@@ -79,16 +79,7 @@ print ("training complete")
 samples = np.float32(samples)
 responses = np.float32(responses)
 
-
-np.savetxt('../data/generalsamples3.data', samples)
-np.savetxt('../data/generalresponses3.data', responses)
 model = cv2.ml.KNearest_create()
-
-# samples=np.append(samples,samples2)
-# responses=np.append(responses,responses2)
-model=cv2.ml.KNearest_load("../data/model_3.text")
 model.train(samples, cv2.ml.ROW_SAMPLE, responses)
-
-#model.train(samples2, cv2.ml.ROW_SAMPLE, responses2)
 
 cv2.Algorithm.save(model,"model_7.text")
