@@ -1,10 +1,11 @@
 '''
 @author ahmed hessuin
 '''
-#commented by ahmed hessuin / ibrahiem amr
+#commented by sara khaled 
 import numpy as np
 from utils import object_file #my files
 from utils import anchor_sub_file
+from utils import image_operations
 #======================================================================================================================#
 class BoundBox:
     #the bound box class
@@ -172,14 +173,14 @@ def config_boxes(image, boxes, labels, obj_thresh, quiet=True):
 
             object_file.object_id=object_file.object_id+1
 
+            x_min,y_min,x_max,y_max=image_operations.set_anchor_to_original_image(box.xmin,box.ymin,box.xmax,box.ymax)
 
             if str(label_str)=="state condition":
-                anchor_sub_file.get_inputs_outputs_slash_for_state_condition(image[box.ymin:box.ymax,box.xmin:box.xmax],box.xmin,box.ymin,"state condition")
+                anchor_sub_file.get_inputs_outputs_slash_for_state_condition(object_file.original_image[y_min:y_max,x_min:x_max],x_min,y_min,"state condition")
 
             if str(label_str)=="state":
                 anchor_sub_file.get_inputs_outputs_slash_for_state_condition(
-                    image[box.ymin:box.ymax, box.xmin:box.xmax], box.xmin, box.ymin,"state")
+                    object_file.original_image[y_min:y_max,x_min:x_max], x_min, y_min,"state")
 
     return image
 #======================================================================================================================#
-
