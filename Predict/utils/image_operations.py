@@ -57,6 +57,8 @@ def draw_on_image(image,boxes):
             color = [249, 223, 64]
         elif (box.get_label()) == ("straight arrow") or (box.get_label()) == ("curved arrow"):
             color = [27, 189, 255]
+        elif (box.get_label()) == ("incline arrow"):
+            color=[125,200,10]
 
         else:
             color = [166, 73, 36]  # this is for text and numbers
@@ -188,3 +190,46 @@ def update_image():
     get_image()
     draw_elements()
 #======================================================================================================================#
+def set_anchors_to_display_image_1600_1200():
+    '''
+    description : for better display change the image size to be 1600x1200 thus, change also all
+    anchors value to the new image size
+    :return: void
+    '''
+
+    train_size=800
+    height,width,depth=object_file.image.shape
+    height_ratio=height/train_size
+    width_ratio=width/train_size
+    for key in object_file.all_objects_as_dic.keys():
+        if key=="arrow head" or key=="straight arrow"or key=="incline arrow":
+            #the arrow head use 1600 1200 image not 800*800
+            continue
+        for anchor in object_file.all_objects_as_dic[key]:
+            anchor.xmin=int(int(anchor.xmin)*width_ratio )
+            anchor.xmax=int(int(anchor.xmax)*width_ratio )
+            anchor.ymin=int(int(anchor.ymin)*height_ratio)
+            anchor.ymax=int(int(anchor.ymax)*height_ratio)
+
+
+def set_anchor_to_original_image(xmin,ymin,xmax,ymax):
+    '''
+    description : change the anchor dimension to the original image this is helpful in
+    anchor subfile to get the state condition from the original image with high pixel value
+    :param xmin: anchor x min , int
+    :param ymin: anchor y min , int
+    :param xmax: anchor x max , int
+    :param ymax: anchor y max , int
+    :return: new x min , y min , x max and y max based on the original image
+    '''
+    height,width,depth=object_file.original_image.shape
+    train_image_x=1600
+    train_image_y=1200
+    height_ratio = height / train_image_y
+    width_ratio = width / train_image_x
+
+    xmin_new=int(xmin*width_ratio)
+    xmax_new=int(xmax*width_ratio)
+    ymin_new=int(ymin*height_ratio)
+    ymax_new=int(ymax*height_ratio)
+    return xmin_new,ymin_new,xmax_new,ymax_new
