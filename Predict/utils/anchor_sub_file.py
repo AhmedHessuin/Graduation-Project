@@ -4,6 +4,7 @@
 import cv2
 import numpy as np
 from utils import object_file
+
 #======================================================================================================================#
 def sort_contours(contours):
     '''
@@ -44,9 +45,9 @@ def image_preprocessing(image,label="nothing"):
 
     preprocessed_image = thresh# the preprocessed image is the output of the thresh
 
-    if label=="state":#special case if the label is state we need dilate
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 4))# kernal 2 * 4
-        preprocessed_image=cv2.dilate(preprocessed_image,kernel,iterations=1)#dilate the numbers for low resolution image
+    # if label=="state":#special case if the label is state we need dilate
+    #     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 4))# kernal 2 * 4
+    #     preprocessed_image=cv2.dilate(preprocessed_image,kernel,iterations=1)#dilate the numbers for low resolution image
 
     return preprocessed_image,width_ratio,height_ratio
 #======================================================================================================================#
@@ -93,6 +94,7 @@ def get_inputs_outputs_slash_for_state_condition(image,xmin,ymin,label):
     :param label: label of the cropped image , string
     :return:void
     '''
+
     if label=="state":# if the label state
         im,extra_xmin,extra_ymin = reshape_state(image)# send it to reshape state
         xmin=xmin+extra_xmin # the xmin is now incremented by the extra xmin of the cropped image from reshape state
@@ -107,11 +109,19 @@ def get_inputs_outputs_slash_for_state_condition(image,xmin,ymin,label):
     preprocessed_image_height = preprocessed_image.shape[0] # height of the preprocessed image
     preprocessed_image_area=preprocessed_image_width*preprocessed_image_height # area of the preprocessed image
 
-    area_ratio_threshold=30/100 # area ratio threshold, if contour area more than 30 % of the image area, ignore it
-    width_ratio_max_threshold=50/100# if the width of the contour more than 50% of the image ignore it
-    width_ratio_min_threshold=5/100 # if the width of the contour less than 5% of the image ignore it
-    height_ratio_min_threshold=15/100# if the height of the contour less than 20% of the image ignore it
-    height_ratio_max_threshold=80/100# if the height of the contour more than 80% of the image ignore it
+    if label =="state":
+        area_ratio_threshold=30/100 # area ratio threshold, if contour area more than 30 % of the image area, ignore it
+        width_ratio_max_threshold=50/100# if the width of the contour more than 50% of the image ignore it
+        width_ratio_min_threshold=10/100 # if the width of the contour less than 5% of the image ignore it
+        height_ratio_min_threshold=10/100# if the height of the contour less than 20% of the image ignore it
+        height_ratio_max_threshold=80/100# if the height of the contour more than 80% of the image ignore it
+
+    else:
+        area_ratio_threshold = 30 / 100  # area ratio threshold, if contour area more than 30 % of the image area, ignore it
+        width_ratio_max_threshold = 50 / 100  # if the width of the contour more than 50% of the image ignore it
+        width_ratio_min_threshold = 5 / 100  # if the width of the contour less than 5% of the image ignore it
+        height_ratio_min_threshold = 35 / 100  # if the height of the contour less than 20% of the image ignore it
+        height_ratio_max_threshold = 80 / 100  # if the height of the contour more than 80% of the image ignore it
     shrunk_value=30# resize the contour with value shrunk value
 
     preprocessed_image_width_threshold_max  = int(preprocessed_image_width * width_ratio_max_threshold)# the max width threshold value
@@ -122,6 +132,7 @@ def get_inputs_outputs_slash_for_state_condition(image,xmin,ymin,label):
     for cnt in contours:# for every contour
         if cv2.contourArea(cnt) > 1 and cv2.contourArea(cnt) < preprocessed_image_area*area_ratio_threshold:#check the area first
             [x, y, w, h] = cv2.boundingRect(cnt) # get the contour width and height
+
             if w <preprocessed_image_width_threshold_max and w > preprocessed_image_width_threshold_min \
                 and h <preprocessed_image_height_threshold_max and h > preprocessed_image_height_threshold_min:# the threshold conditions
 
@@ -140,11 +151,17 @@ def get_inputs_outputs_slash_for_state_condition(image,xmin,ymin,label):
                     string="/"
                     continue
 
+                width_ratio_to_predict_image=1600/object_file.original_image.shape[1]
+                height_ratio_to_predict_image = 1200 / object_file.original_image.shape[0]
 
+                new_xmin = (int(x * width_ratio) + xmin)*width_ratio_to_predict_image
+                new_xmax = (int(x * width_ratio + w * width_ratio)+xmin)*width_ratio_to_predict_image
+                new_ymin = (int(y * height_ratio)+ymin)*height_ratio_to_predict_image
+                new_ymax = (int(y * height_ratio + h * height_ratio)+ymin)*height_ratio_to_predict_image
                 object_file.all_objects_as_dic[str(string)].append(
                     object_file.DC.Data(str(string),
-                                        str(int(x * width_ratio)+xmin), str(int(y * height_ratio)+ymin),
-                                        str(int(x * width_ratio + w * width_ratio)+xmin), str(int(y * height_ratio + h * height_ratio)+ymin),
+                                        str(int(new_xmin)), str(int(new_ymin)),
+                                        str(int(new_xmax)), str(int(new_ymax)),
                                         str("90"), object_file.object_id))  # insert the anchor in the dictionary
 
                 object_file.object_id = object_file.object_id + 1 # increment the object id by 1
