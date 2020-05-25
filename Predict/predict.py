@@ -4,7 +4,7 @@
 description : predict file core file for prediction on the given image
 '''
 #commented by ibrahiem amr / ahmed hessuin
-
+import numpy as np
 import cv2
 from utils.utils import get_yolo_boxes
 from utils.bbox import config_boxes
@@ -19,6 +19,8 @@ from keras.models import load_model as load_model_5
 from utils import image_operations
 from utils import object_file
 from  utils import  xml_creator
+import image_preprocess
+import line_detector
 
 #============================= warning remover =========================================#
 import warnings
@@ -57,7 +59,7 @@ def reset_object_file():
     description : this function for predict function to reset the object parameter for multi input image
     :return: void
     '''
-    object_file.all_objects_as_dic={"/": [], "0": [], "1": [], "2": [], "3": [], "4": [], "5": [], "6": [], "7": [], "8": [], "9": [],"arrow head": [], "state condition": [], "loop back arrow": [], "state": [], "straight arrow": [],"curved arrow": []}
+    object_file.all_objects_as_dic={"/": [], "0": [], "1": [], "2": [], "3": [], "4": [], "5": [], "6": [], "7": [], "8": [], "9": [],"arrow head": [], "state condition": [], "loop back arrow": [], "state": [], "straight arrow": [],"incline arrow":[]}
     object_file.object_id = 0
 #======================================================================================================================#
 def first_step_config():
@@ -73,11 +75,12 @@ def first_step_config():
     # ============================== use infer model ===========================#
 
     # =================================load infer model =============================#
-    object_file.model_1 = load_model_1("weights/state_condition_and_slash.h5")  # use the infer model(see train file) with saved weights
-    object_file.model_2 = load_model_2("weights/state_loop_back.h5")  # use the infer model(see train file) with saved weights0
+    object_file.model_2 = load_model_1("weights/state_condition_and_slash.h5")  # use the infer model(see train file) with saved weights
+    # object_file.model_2 = load_model_2("weights/state_loop_back.h5")  # use the infer model(see train file) with saved weights0
     object_file.model_3 = load_model_3("weights/arrow_head.h5")  # use the infer model(see train file) with saved weights
-    object_file.model_4 = load_model_4("weights/arrows.h5")  # use the infer model(see train file) with saved weights
-    object_file.model_5 = load_model_5("weights/inclined.h5")
+    # object_file.model_4 = load_model_4("weights/arrows.h5")  # use the infer model(see train file) with saved weights
+    # object_file.model_5 = load_model_5("weights/inclined.h5")
+    object_file.model_1 = load_model_1("weights/all_in_one.h5")
 #==================================================== main ============================================================#
 def _main_(input_path_x,infer_model,infer_model_2,infer_model_3,infer_model_4,infer_model_5):
     '''
@@ -95,13 +98,14 @@ def _main_(input_path_x,infer_model,infer_model_2,infer_model_3,infer_model_4,in
     ###############################
     #   Set some parameter
     ###############################
-    net_h, net_w = 416, 416 # a multiple of 32, the smaller the faster
+    train_net_size=416
+    net_h, net_w = 480, 480 # a multiple of 32, the smaller the faster 416, 416
     obj_thresh, nms_thresh = 0.90, .3  #obj_thresh = .5 mean if less than 50% sure ignore it, nms_thresh =.3 means if 30 % IOU for 2 boxes; merge them
 
 
     #===========================================================================#
     ###############################
-    #   Predict bounding boxes 
+    #   Predict bounding boxes
     ###############################
     #============================================ for video ===========================================================#
 
@@ -110,7 +114,7 @@ def _main_(input_path_x,infer_model,infer_model_2,infer_model_3,infer_model_4,in
     if True: # do detection on an image or a set of images
         image_paths = []
         #==================================== image path ==============================================================#
-        if os.path.isdir(input_path): 
+        if os.path.isdir(input_path):
             for inp_file in os.listdir(input_path): # get the input image
                 image_paths += [input_path + inp_file] # get the input image
         else:
@@ -121,67 +125,84 @@ def _main_(input_path_x,infer_model,infer_model_2,infer_model_3,infer_model_4,in
 
 
         ############################# anchors intialiazation ############################################
-        model_1_anchors=[4,13, 5,14, 6,12, 6,16, 20,25, 22,21, 27,15, 31,25, 35,17]                     #
-        model_2_anchors=[26,35, 26,54, 28,36, 34,62, 35,46, 38,23, 43,80, 51,58, 58,90]                 #
+        model_2_anchors=[4,13, 5,14, 6,12, 6,16, 20,25, 22,21, 27,15, 31,25, 35,17]                     #
+        # model_2_anchors=[26,35, 26,54, 28,36, 34,62, 35,46, 38,23, 43,80, 51,58, 58,90]                 #
         model_3_anchors=[55,69, 75,234, 133,240, 136,129, 142,363, 203,290, 228,184, 285,359, 341,260]  #
-        #model_4_anchors=[6, 88, 9, 53, 11, 168, 44, 9, 49, 77, 66, 15, 80, 67, 97, 26, 153, 11]        #
-        model_4_anchors=[7,65, 11,159, 36,9, 49,77, 50,15, 65,8, 78,15, 107,27, 161,11]                 #
-        model_5_anchors=[18,47, 64,70, 71,71, 74,13, 74,52, 75,26, 76,79, 80,45, 105,103]               #
+        # #model_4_anchors=[6, 88, 9, 53, 11, 168, 44, 9, 49, 77, 66, 15, 80, 67, 97, 26, 153, 11]        #
+        # model_4_anchors=[7,65, 11,159, 36,9, 49,77, 50,15, 65,8, 78,15, 107,27, 161,11]                 #
+        # model_5_anchors=[18,47, 64,70, 71,71, 74,13, 74,52, 75,26, 76,79, 80,45, 105,103]               #
+        #model_1_anchors=[13,17, 16,14, 19,18, 22,12, 23,26, 28,36, 29,16, 34,52, 50,76] #3 in one
+        model_1_anchors = [13, 17, 17, 14, 17, 19, 22, 28, 27, 12, 27, 18, 28, 37, 35, 52, 48, 74]  # 3 in one
         #################################################################################################
 
         ################################## labels intialiazation ######################################
-        model_1_label=["/","state condition"]                                                         #
-        model_2_label=["loop back arrow","state"]                                                     #
+        # model_1_label=["/","state condition"]
+        model_1_label = ["loop back arrow", "state", "state condition"]  #
+        model_2_label = ["/"]
+        # model_2_label=["loop back arrow","state"]                                                     #
         model_3_label=["arrow head"]                                                                  #
-        model_4_label=["curved arrow","straight arrow"]                                               #
-        model_5_label=["straight arrow"]
+        # model_4_label=["curved arrow","straight arrow"]                                               #
+        # model_5_label=["straight arrow"]
+
         ###############################################################################################
 
         ############################################ the main loop ################################################################
         for image_path in image_paths:
+
             image = cv2.imread(image_path)# load the image path
-            image = cv2.resize(image,(1600,1200))
+
+            object_file.original_image=cv2.imread(image_path) # set the original image
+            image=image_preprocess.start_pre(image,condition=object_file.hand_written)
+            image_as_1600_1200 = image.copy()
+            image_as_1600_1200 = cv2.resize(image_as_1600_1200, (1600, 1200))
+
+            line_detector.line_detector(image_as_1600_1200)
+
             ########################################## predict the bounding boxes ##################################################
             ######################################### predict box for infer model_1 ################################################
             boxes = get_yolo_boxes(infer_model, [image], net_h, net_w, model_1_anchors, obj_thresh, nms_thresh)[0]      #
-                                                                                                                                   #
-            ######################################### predict box for infer model_2 ################################################
+            #                                                                                                                        #
+            # ######################################### predict box for infer model_2 ################################################
             boxes_2=get_yolo_boxes(infer_model_2, [image], net_h, net_w, model_2_anchors, obj_thresh, nms_thresh)[0]  #
-                                                                                                                                   #
-            ######################################### predict box for infer model_3 ################################################
-            boxes_3 =get_yolo_boxes(infer_model_3, [image], net_h, net_w, model_3_anchors, obj_thresh, nms_thresh)[0] #
-                                                                                                                                   #
-            ######################################### predict box for infer model_4 ################################################
-            boxes_4 =get_yolo_boxes(infer_model_4, [image], net_h, net_w, model_4_anchors, obj_thresh, nms_thresh)[0] #
-                                                                                                                                   #
+            #                                                                                                                        #
+            # ######################################### predict box for infer model_3 ################################################
+            boxes_3 =get_yolo_boxes(infer_model_3, [image_as_1600_1200], net_h, net_w, model_3_anchors, obj_thresh, nms_thresh)[0] #
+            #                                                                                                                        #
+            # ######################################### predict box for infer model_4 ################################################
+            # nms_thresh_arrow=0.01
+            # boxes_4 =get_yolo_boxes(infer_model_4, [image], net_h, net_w, model_4_anchors, obj_thresh, nms_thresh_arrow)[0] #
+            #                                                                                                                        #
+            # ########################################################################################################################
+            # boxes_5 =get_yolo_boxes(infer_model_5, [image], net_h, net_w, model_5_anchors, obj_thresh, nms_thresh)[0] #
+            #                                                                                                                        #
             ########################################################################################################################
-            boxes_5 =get_yolo_boxes(infer_model_5, [image], net_h, net_w, model_5_anchors, obj_thresh, nms_thresh)[0] #
-                                                                                                                                   #
-            ########################################################################################################################
+
+
 
             ######################## draw boxes after predict ####################
             ######################################################################
             # draw bounding boxes on the image using labels model 1              #
             config_boxes(image, boxes, model_1_label, obj_thresh)      #
-                                                                                 #
-            # draw bounding boxes on the image using labels model 2              #
+            #                                                                      #
+            # # draw bounding boxes on the image using labels model 2              #
             config_boxes(image, boxes_2, model_2_label, obj_thresh)  #
-                                                                                 #
-            # draw bounding boxes on the image using labels model 3              #
+            #                                                                      #
+            # # draw bounding boxes on the image using labels model 3              #
             config_boxes(image, boxes_3, model_3_label, obj_thresh)  #
-                                                                                 #
-            # draw bounding boxes on the image using labels model 4              #
-            config_boxes(image, boxes_4, model_4_label, obj_thresh)  #
-                                                                                 #
-            # draw bounding boxes on the image using labels model 5              #
-            config_boxes(image, boxes_5, model_5_label, obj_thresh)  #
-                                                                                 #
+            #                                                                      #
+            # # draw bounding boxes on the image using labels model 4              #
+            #
+            # config_boxes(image, boxes_4, model_4_label, obj_thresh)  #
+            #                                                                      #
+            # # draw bounding boxes on the image using labels model 5              #
+            # config_boxes(image, boxes_5, model_5_label, obj_thresh)  #
+            #                                                                      #
             ######################################################################
             ######################################################################
 
-
+            display_image=cv2.resize(object_file.original_image,(1600,1200))
             #=====================set the exported path================================================#
-            set_inputpath_and_image(image,image_path)#get the input image path as array removing the image name.type
+            set_inputpath_and_image(display_image,image_path)#get the input image path as array removing the image name.type
             #=====================================================================#
 #======================================================================================================================#
 def predict_main(input_path):
@@ -193,6 +214,7 @@ def predict_main(input_path):
     image_path = input_path
     _main_(image_path,object_file.model_1,object_file.model_2,object_file.model_3,object_file.model_4,object_file.model_5) # call the main
     #=====================================================================#
+    #image_operations.set_anchors_to_display_image_1600_1200()
     image_operations.update_image()
     #---------------------------------------------------------------------#
     return log_config.start_of_log()+"predict done"+log_config.end_of_log()
@@ -202,7 +224,7 @@ if __name__ == '__main__':
     first_step_config()
 
     print(log_config.start_of_log(),log_config.start_up_log())
-    print(predict_main("test.png"))
+    print(predict_main("Slide5.png"))
     xml_creator.xml_output_path("test.xml")
     image_operations.set_output_path("predicted.png")
     image_operations.export_image()
@@ -210,4 +232,4 @@ if __name__ == '__main__':
     passed, text, img =matching.connect_transactions()
     print(text)
     transactionToVerilog.transactionToVerilog("Moudel_0",object_file.transaction)
-
+    enter=input("Enter any button to close")
