@@ -6,7 +6,10 @@ from utils import object_file
 from utils import log_config
 from utils import image_operations
 import cv2
-
+def get_anchor_area(element):
+    width=element.get_xmax()-element.get_xmin()
+    height=element.get_ymax()-element.get_ymin()
+    return width*height
 #======================================================================================================================#
 def add_state_id(element):
     '''
@@ -51,12 +54,247 @@ def interval_overlap(first_element_coordinate_min,first_element_coordinate_max,
         if x4 < x1:  # case 1
             return 0  # case 1 no overlap
         else:
-            return 1  # case 2 get the overlap [   ]
+            return min(x2, x4) - x1  # case 2 get the overlap [   ]
     else:  # case 3 , case 4
         if x2 < x3:  # case 3
             return 0  # no overlap
         else:  # case 4
-            return 1  # overlap [       ]
+            return min(x2, x4) - x3  # overlap [       ]
+#======================================================================================================================#
+def area_of_intersection(first_element,second_element):
+    '''
+    description : getting the area of intersection between two anchors
+    :param first_element: first anchor, DC
+    :param second_element: second anchor, DC
+    :return: area of the intersection
+    '''
+    interval_overlap_in_x=interval_overlap(first_element.get_xmin(),first_element.get_xmax(),
+                                           second_element.get_xmin(),second_element.get_xmax())
+    interval_overlap_in_y=interval_overlap(first_element.get_ymin(),first_element.get_ymax(),
+                                           second_element.get_ymin(),second_element.get_ymax())
+
+    intersection_area=interval_overlap_in_x * interval_overlap_in_y
+    return intersection_area
+#======================================================================================================================#
+def connect_arrow_head_with_one_arrow(arrow_head):
+    '''
+    description : connect arrow head anchor with only one arrow, based on the most intersection area between the arrow
+    head and the other arrow anchors
+    :param arrow_head: arrow head anchor, DC
+    :return: void
+    '''
+    min_area=-1
+    previous_element=None
+    for element in arrow_head.get_connected_anchor():
+
+        if element.get_name()!="state":
+            #straight arrow, loop back arrow, incline
+            intersection_between_arrow_head_and_arrow=area_of_intersection(arrow_head,element)
+            if intersection_between_arrow_head_and_arrow > min_area:
+                min_area=intersection_between_arrow_head_and_arrow #keep this arrow and update min
+                if previous_element==None:
+                    previous_element=element
+                else:
+                    arrow_head.get_connected_anchor().remove(previous_element)  # remove this element from the connected elements
+                    previous_element=element
+
+
+            else:
+                arrow_head.get_connected_anchor().remove(element) #remove this element from the connected elements
+#======================================================================================================================#
+def get_state_from_arrow_head(arrow_head):
+    '''
+    description : return the dst state , the state anchor connected with arrow head anchor
+    :param arrow_head: arrow head anchor, DC
+    :return: the dst state , DC
+    '''
+    for element in arrow_head.get_connected_anchor():
+        if element.get_name()=="state":
+            return element
+#======================================================================================================================#
+def connect_state_condition_with_one_arrow(state_condition):
+    '''
+    description : connect state condition with only 1 arrow, if it's connected with incline and straight arrow, the
+    straight arrow wins and we remove the incline arrow, if connected with 2 or more straight, get the one with most
+    intersection area
+    :param state_condition:
+    :return:
+    '''
+    connected_arrows=[]
+    for element in state_condition.get_connected_anchor():
+        if element.get_name()=="incline arrow" or element.get_name()=="straight arrow":
+            connected_arrows.append(element)
+    if len(connected_arrows)>1:
+        #connected with straight arrow and incline
+        for element in connected_arrows:
+            if element.get_name()=="incline arrow":
+                state_condition.get_connected_anchor().remove(element)#remove the incline
+                element.get_connected_anchor().remove(state_condition)#remove the state condition
+                connected_arrows.remove(element)
+
+    #connected with straight arrow only
+    if len(connected_arrows) > 1:
+        min_area = -1
+        previous_element = None
+        for element in connected_arrows:
+
+            if element.get_name() == "straight arrow":
+                # straight arrow
+                intersection_between_state_condition_and_arrow = area_of_intersection(state_condition, element)
+                if intersection_between_state_condition_and_arrow > min_area:
+                    min_area = intersection_between_state_condition_and_arrow  # keep this arrow and update min
+                    if previous_element == None:
+                        previous_element = element
+                    else:
+                        state_condition.get_connected_anchor().remove(
+                            previous_element)  # remove this element from the connected elements
+                        previous_element = element
+                else:
+                    state_condition.get_connected_anchor().remove(element)  # remove this element from the connected elements
+#======================================================================================================================#
+def get_src_state_for_incline_arrow_old_function():
+    '''
+    description : back up function
+    :return: -1
+    '''
+    # the_state_in_the_arrow_head=get_state_from_arrow_head(arrow_head)
+    # for element in inclined_arrow.get_connected_anchor():
+    #     if element.get_name()=="state":#if it's a state
+    #         if element != the_state_in_the_arrow_head:  # if not the core state
+    #             interval_overlap_in_x = interval_overlap(element.get_xmin(), element.get_xmax(),
+    #                                                      the_state_in_the_arrow_head.get_xmin(),
+    #                                                      the_state_in_the_arrow_head.get_xmax())
+    #             interval_overlap_in_y = interval_overlap(element.get_ymin(), element.get_ymax(),
+    #                                                      the_state_in_the_arrow_head.get_ymin(),
+    #                                                      the_state_in_the_arrow_head.get_ymax())
+    #
+    #             if interval_overlap_in_y ==0  and interval_overlap_in_x==0:#this is the src state
+    #                return element # return this state
+    return -1
+#======================================================================================================================#
+def get_src_state_for_incline_arrow(arrow_head,inclined_arrow):
+    '''
+    description : taking arrow head anchor and incline arrow anchor, getting the distance between the arrow head and
+    the border of the incline arrow, and measure this distance again from the different border to get the mirror of
+    the arrow head, taking the mirror of the arrow head and check intersection between it and every state the incline
+    connected with, if there is an intersection it's the src state of this incline arrow.
+    :param arrow_head: arrow head anchor, DC
+    :param inclined_arrow: incline arrow anchor, DC
+    :return: the src state of this incline arrow
+    '''
+    # example of the idea
+    '''
+    label map
+    arrow head anchor => +
+    the expected src state anchor will intersect with the reverse of the arrow head anchor => -
+
+
+             #############################
+             #-------------------------->#
+             #     distance in x  |      #
+             #                    | +++++#
+             #                    | +   +#
+             #     distance in y  v +++++#
+             #                           #
+             #                           #
+             # -----                     #
+             # -   -  mirror  anchor     #
+             # -----                     #
+             #                           #
+             #                           #
+             #                           #
+             #############################
+    '''
+
+    arrow_head_xmax=arrow_head.get_xmax()
+    arrow_head_ymax=arrow_head.get_ymax()
+    inclined_arrow_xmin=inclined_arrow.get_xmin()
+    inclined_arrow_ymin=inclined_arrow.get_ymin()
+    inclined_arrow_xmax = inclined_arrow.get_xmax()
+    inclined_arrow_ymax = inclined_arrow.get_ymax()
+
+    distance_in_x=arrow_head_xmax-inclined_arrow_xmin
+    distance_in_y=arrow_head_ymax-inclined_arrow_ymin
+
+    check_point_x=inclined_arrow_xmax-distance_in_x
+    check_point_y=inclined_arrow_ymax-distance_in_y
+
+    tolerance_y=10
+    tolerance_x=20
+
+    check_point_x=check_point_x-tolerance_x
+    check_point_y=check_point_y-tolerance_y
+    check_point_x_2=check_point_x+4*tolerance_x
+    check_point_y_2=check_point_y+2*tolerance_y
+    #create a dumy anchor
+    anchor_intersect_with_src_state=object_file.DC.Data("dumb",check_point_x,check_point_y,check_point_x_2,check_point_y_2,"50")
+    #check in every state if there is an intersection between this state and the dumb anchor
+    for state in inclined_arrow.get_connected_anchor():
+        if state.get_name()=="state":#if it's a state
+            intersected_area=area_of_intersection(anchor_intersect_with_src_state,state)
+            if intersected_area>0:
+                return state
+
+#======================================================================================================================#
+def get_distance_between_two_anchors(element_1,element_2):
+    '''
+    description : getting the min distance between 2 anchors, by measure the distance between the 4 points and the the
+    second element 4 points
+    :param element_1: anchor, DC
+    :param element_2: anchor, DC
+    :return: min distance
+    '''
+    x1_min=element_1.get_xmin()
+    x1_max=element_1.get_xmax()
+    x2_min=element_2.get_xmin()
+    x2_max=element_2.get_xmax()
+    y1_min=element_1.get_ymin()
+    y1_max=element_1.get_ymax()
+    y2_min=element_2.get_ymin()
+    y2_max=element_2.get_ymax()
+    #------------- distance 1---------------#
+    x_distance_1 = (x1_min - x2_min) ** 2
+    y_distance_1 = (y1_min - y2_min) ** 2
+    #------------- distance 2---------------#
+    x_distance_2 = (x1_max - x2_max) ** 2
+    y_distance_2 = (y1_min - y2_min) ** 2
+    #------------ distance 3 ---------------#
+    x_distance_3 = (x1_min - x2_min) ** 2
+    y_distance_3 = (y1_max - y2_max) ** 2
+    #----------- distance 4 ----------------#
+    x_distance_4 = (x1_max - x2_max) ** 2
+    y_distance_4 = (y1_max - y2_max) ** 2
+    #---------------------------------------#
+
+    distance_1 = (x_distance_1 + y_distance_1) ** .5
+    distance_2 = (x_distance_2 + y_distance_2) ** .5
+    distance_3 = (x_distance_3 + y_distance_3) ** .5
+    distance_4 = (x_distance_4 + y_distance_4) ** .5
+
+    distance_array=[distance_1,distance_2,distance_3,distance_4]
+
+    return min(distance_array)
+#======================================================================================================================#
+def get_state_condition_for_inclined_line(arrow_head,inclined_arrow):
+    '''
+    description : getting the state condition for the incline arrow, or cross arrow, by getting the most close state
+    condition anchor to the arrow head of this incline arrow.
+    :param arrow_head: arrow head anchor of the incline or cross arrow, DC
+    :param inclined_arrow: the incline or cross anchor, DC
+    :return: the most close state condition to this arrow head and connected to the incline arrow
+    '''
+    min_distance=99999
+    arrow_head_state_condition=None
+    for element in inclined_arrow.get_connected_anchor():
+        if element.get_name()=="state condition":
+            dist=get_distance_between_two_anchors(arrow_head,element)
+            if dist<min_distance:
+                min_distance=dist
+                arrow_head_state_condition=element
+            else:
+                do_nothing=-1
+
+    return arrow_head_state_condition
 #======================================================================================================================#
 def connect_anchors():
     '''
@@ -85,16 +323,16 @@ def connect_anchors():
         elif key == "state condition":
             second_key.append("loop back arrow")
             second_key.append("straight arrow")
-            second_key.append("curved arrow")
+            second_key.append("incline arrow")
 
-        elif key == "straight arrow" or key == "curved arrow":
+        elif key == "straight arrow" or key == "incline arrow":
             second_key.append("state")
             # second_key.append("state condition")
 
         elif key == "arrow head":
             second_key.append("state")
             second_key.append("straight arrow")
-            second_key.append("curved arrow")
+            second_key.append("incline arrow")
             second_key.append("loop back arrow")
 
         elif key == "0" or key == "1" or key == "2" or key == "3" or key == "4" or key == "5" \
@@ -116,8 +354,14 @@ def connect_anchors():
 
                     overlap_in_y = interval_overlap(element.get_ymin(), element.get_ymax(),
                                                     second_element.get_ymin(),second_element.get_ymax())
-                    connected=overlap_in_x*overlap_in_y # 0 or 1 , 1 if connected, 0 other wise
-                    if connected==1:
+                    connected_area=overlap_in_x*overlap_in_y
+                    if connected_area>0:
+                        if key=="straight arrow":
+                            straight_arrow_area=get_anchor_area(element)
+                            shared_area_threshold=straight_arrow_area*0.5
+                            if connected_area >=shared_area_threshold:
+                                #this is a noise
+                                object_file.all_objects_as_dic[key].remove(element)#remove this element
 
                         element.set_connected_id(
                             second_element.get_id())  # add the id of the big anchor as connected in the small anchor
@@ -135,6 +379,11 @@ def connect_anchors():
                                 element)  # add this anchor as data type(data) in the list of connected anchors
 
                         # ===================================================================================#
+            # filter area #
+            if key=="arrow head":
+                connect_arrow_head_with_one_arrow(element) # if it's an arrow head, clear it
+            if key=='state condition':
+                connect_state_condition_with_one_arrow(element)
 #======================================================================================================================#
 def sort_anchors(anchors):
     '''
@@ -284,7 +533,7 @@ def generate_state_id_dumy(string,element):
     object_file.object_id=object_file.object_id+1 # increment object id by 1
     return out_element
 #======================================================================================================================#
-def error_checking(src_element,dst_element,con_element,src_element_id,dst_element_id,con_element_input_output):
+def error_checking(src_element,dst_element,con_element,src_element_id,dst_element_id,con_element_input_output,arrow_head_element):
     '''
     description : check for errors in the transaction, like if there was no src or dst or transaction condition
     :param src_element: the src element, Data
@@ -293,17 +542,20 @@ def error_checking(src_element,dst_element,con_element,src_element_id,dst_elemen
     :param src_element_id: the id of the src , String
     :param dst_element_id: the id of the dst , String
     :param con_element_input_output: the input and output condition ( 0 1 ) , Data
+    :param arrow_head_element: the arrow head anchor, DaTA
     :return: string "passed", or the error msg  also return 1 and -1 for success and fail, return the image hight_light, if there is an error
     '''
     error_msg = "the black anchors indicates where is the error\nit must have src_state, dst_state, condition.\n"
     high_light_errors_on_the_image = []
     dump_copy_of_the_image = object_file.image.copy()  # copy of the original image
+    # check for error conditions
     src_test=-1
     dst_test=-1
     con_test=-1
     input_output_test=-1
-    # check for error conditions
-    
+
+    high_light_errors_on_the_image.append({"xmin": arrow_head_element.get_xmin(), "xmax": arrow_head_element.get_xmax(),
+                                               "ymin": arrow_head_element.get_ymin(), "ymax": arrow_head_element.get_ymax()})
     if src_element != None:
         src_element_id = sort_anchors(src_element_id)  # sort the list
         transaction_src_id = get_state_id_as_string(src_element_id)  # get the id as string
@@ -311,7 +563,6 @@ def error_checking(src_element,dst_element,con_element,src_element_id,dst_elemen
                                                "ymin": src_element.get_ymin(), "ymax": src_element.get_ymax()})
         error_msg = error_msg + "it has src state id =  " + str(transaction_src_id) + "\n"
         src_test=1
-        
     if dst_element != None:
         dst_element_id = sort_anchors(dst_element_id)
         transaction_dst_id = get_state_id_as_string(dst_element_id)
@@ -319,20 +570,21 @@ def error_checking(src_element,dst_element,con_element,src_element_id,dst_elemen
         high_light_errors_on_the_image.append({"xmin": dst_element.get_xmin(), "xmax": dst_element.get_xmax(),
                                                "ymin": dst_element.get_ymin(), "ymax": dst_element.get_ymax()})
         dst_test=1
-
     if con_element != None:
         con_element_input_output = sort_anchors(con_element_input_output)
         transaction_input, transaction_output = get_input_get_output(con_element_input_output)
         error_msg = error_msg + "it has condition = " + transaction_input + " / " + transaction_output + "\n"
         high_light_errors_on_the_image.append({"xmin": con_element.get_xmin(), "xmax": con_element.get_xmax(),
                                                "ymin": con_element.get_ymin(), "ymax": con_element.get_ymax()})
-
         con_test=1
         if transaction_input == "" or transaction_output == "":
             error_msg=error_msg + "it is missing input or output"+"\n"
         else:
-            input_output_test=1        
-            
+            input_output_test=1
+
+
+
+
     if input_output_test ==-1 or src_test==-1 or dst_test==-1 or con_test==-1:
         for hightlight in high_light_errors_on_the_image:
             cv2.rectangle(img=dump_copy_of_the_image, pt1=(hightlight["xmin"], hightlight["ymin"]),
@@ -340,9 +592,8 @@ def error_checking(src_element,dst_element,con_element,src_element_id,dst_elemen
                           pt2=(hightlight["xmax"], hightlight["ymax"]),
                           color=[0, 0, 0], thickness=2
                           )
-
-
         return -1,error_msg ,dump_copy_of_the_image
+
 
     return 1,"passed",object_file.image
 #======================================================================================================================#
@@ -364,7 +615,7 @@ def connect_transactions():
     object_file.valid_verilog = False
     changed=-1 # flag variable to determine update the image or no
     passed=-1 # the passing condition -1 failed, 1 success
-    for element in object_file.all_objects_as_dic["arrow head"]: # for every arrow head, as it's the connecting element of the state and the line
+    for arrow_head in object_file.all_objects_as_dic["arrow head"]: # for every arrow head, as it's the connecting element of the state and the line
         src_element = None
         dst_element = None
         con_element = None
@@ -374,17 +625,20 @@ def connect_transactions():
         con_element_input_output=[] # condition element inputs and outputs
 
         # search in state
-        for x_element in element.get_connected_anchor():# for every element in the arrow head
+        for x_element in arrow_head.get_connected_anchor():# for every element in the arrow head
             if x_element.get_name() == "state": # if this element is a state take it
                 dst_element = x_element # this element is the dst element as the arrow connected with this state
                 dst_element_id=get_state_id(dst_element) # get the state id as list of anchors
                 break#break this loop
 
-        for x_element in element.get_connected_anchor():# for every element in the arrow head
+        for x_element in arrow_head.get_connected_anchor():# for every element in the arrow head
             if x_element.get_name() != "state": # if this element not a state, thus it's an straight arrow or loop back arrow or any kind of arrow
                 if x_element.get_name() == "loop back arrow":#if it's loop back arrow
                     src_element = dst_element # the src element is the dst element
                     con_element = get_state_condition(x_element) # get the state condition for this arrow
+                elif x_element.get_name()=="incline arrow":
+                    src_element=get_src_state_for_incline_arrow(arrow_head,x_element)
+                    con_element=get_state_condition_for_inclined_line(arrow_head,x_element)
                 else:# if it's not an loop back arrow
                     src_element = get_src_element(dst_element.get_id(), x_element.get_connected_anchor())# get the src element as the another satet of this arrow
                     con_element = get_state_condition(x_element)# get the state condition for this arrow
@@ -398,11 +652,15 @@ def connect_transactions():
 
 
 
-        passed,error_msg,highlight_image=error_checking(src_element,dst_element,con_element,src_element_id,dst_element_id,con_element_input_output)#check for error
-        if passed==-1:#not passed
-            return passed,log_config.start_of_log()+(error_msg)+log_config.end_of_log(),highlight_image
+        passed,error_msg,highlight_image=error_checking(src_element,dst_element,con_element,src_element_id,dst_element_id,con_element_input_output,arrow_head)#check for error
 
-        else:
+        if passed==-1:#not passed
+            if object_file.safe_mode==1:
+                return passed,log_config.start_of_log()+(error_msg)+log_config.end_of_log(),highlight_image
+            else :
+                passed=1
+
+        if passed==1:
             #passed
             con_element_input_output=sort_anchors(con_element_input_output)# sort the anchors of the input and output from left to right
             src_element_id=sort_anchors(src_element_id)#sort the anchors of the src state id from left to right
@@ -412,58 +670,59 @@ def connect_transactions():
             transaction_input,transaction_output=get_input_get_output(con_element_input_output)#get the input and the output of the state from the anchors as string
             transaction_src_id=get_state_id_as_string(src_element_id)#get the src state id as string
             transaction_dst_id=get_state_id_as_string(dst_element_id)#get the dst state id as string
+            #================================== another non fatel error checking ==============================================#
+            #must be in safe mode to work
+            if object_file.safe_mode==1:
+                if transaction_src_id=="" and transaction_dst_id!="": # if the src state id string is empty, but we have dst state id as string
+                    # if the state has no id generate one for it
+                    transaction_src_id="g_"+str(dump_id)# generating the id with tag g_ as string
+                    dump_id = dump_id + 1 # increment the dummy id
+                    gen_element_src_id=generate_state_id_dumy(transaction_src_id,src_element)# generate the id as element
+                    add_state_id(gen_element_src_id)# append this element in the dictionary
+                    changed=1# mark we changed on the image
+                    #=============================================================#
+                if transaction_dst_id=="" and transaction_src_id!="":# if the dst state id string is empty, but we have src state id as string
+                    # if the state has no id generate one for it
+                    transaction_dst_id="g_"+str(dump_id)# generating the id with tag g_ as string
+                    dump_id = dump_id + 1# increment the dummy id
+                    gen_element_dst_id=generate_state_id_dumy(transaction_dst_id,dst_element)# generate the id as element
+                    add_state_id(gen_element_dst_id)#append this element in the dictionary
+                    changed=1# mark we changed on the image
+                    #=============================================================#
+                if transaction_src_id=="" and transaction_dst_id=="":# if we didn't find a src id elements or dst id elements
+                    transaction_src_id="g_"+str(dump_id)# generate dump id as string 1
+                    dump_id = dump_id + 1#update the dump id
+                    transaction_dst_id = "g_" + str(dump_id)# generate dump id as string 2
+                    dump_id = dump_id + 1#update the dump id
 
-            #============================== another non fatel error checking ==============================================#
-            if transaction_src_id=="" and transaction_dst_id!="": # if the src state id string is empty, but we have dst state id as string
-                # if the state has no id generate one for it
-                transaction_src_id="g_"+str(dump_id)# generating the id with tag g_ as string
-                dump_id = dump_id + 1 # increment the dummy id
-                gen_element_src_id=generate_state_id_dumy(transaction_src_id,src_element)# generate the id as element
-                add_state_id(gen_element_src_id)# append this element in the dictionary
-                changed=1# mark we changed on the image
-                #=============================================================#
-            if transaction_dst_id=="" and transaction_src_id!="":# if the dst state id string is empty, but we have src state id as string
-                # if the state has no id generate one for it
-                transaction_dst_id="g_"+str(dump_id)# generating the id with tag g_ as string
-                dump_id = dump_id + 1# increment the dummy id
-                gen_element_dst_id=generate_state_id_dumy(transaction_dst_id,dst_element)# generate the id as element
-                add_state_id(gen_element_dst_id)#append this element in the dictionary
-                changed=1# mark we changed on the image
-                #=============================================================#
-            if transaction_src_id=="" and transaction_dst_id=="":# if we didn't find a src id elements or dst id elements
-                transaction_src_id="g_"+str(dump_id)# generate dump id as string 1
-                dump_id = dump_id + 1#update the dump id
-                transaction_dst_id = "g_" + str(dump_id)# generate dump id as string 2
-                dump_id = dump_id + 1#update the dump id
+                    if src_element.get_xmin()== dst_element.get_xmin() and src_element.get_ymin()==dst_element.get_ymin():# if the src state and the dst state have the same xmin and ymin,thus this is the same condition
+                        gen_element_src_id = generate_state_id_dumy(transaction_src_id, src_element)#just add one id
+                        transaction_dst_id =transaction_src_id  # the dst id is the src id
+                        add_state_id(gen_element_src_id)#add this id as an element
+                        dump_id=dump_id-1#remove the extra dump id as not used
 
-                if src_element.get_xmin()== dst_element.get_xmin() and src_element.get_ymin()==dst_element.get_ymin():# if the src state and the dst state have the same xmin and ymin,thus this is the same condition
-                    gen_element_src_id = generate_state_id_dumy(transaction_src_id, src_element)#just add one id
-                    transaction_dst_id =transaction_src_id  # the dst id is the src id
-                    add_state_id(gen_element_src_id)#add this id as an element
-                    dump_id=dump_id-1#remove the extra dump id as not used
-
-                else:# the two states are diffrent, not the same state
-                    gen_element_src_id = generate_state_id_dumy(transaction_src_id, src_element)#generate the first id element
-                    gen_element_dst_id = generate_state_id_dumy(transaction_dst_id, dst_element)#generate the second id element
-                    add_state_id(gen_element_src_id)#add this element
-                    add_state_id(gen_element_dst_id)#add this element
-                changed=1 # mark that, we changed in the image
-            #==============================================================================================================#
+                    else:# the two states are diffrent, not the same state
+                        gen_element_src_id = generate_state_id_dumy(transaction_src_id, src_element)#generate the first id element
+                        gen_element_dst_id = generate_state_id_dumy(transaction_dst_id, dst_element)#generate the second id element
+                        add_state_id(gen_element_src_id)#add this element
+                        add_state_id(gen_element_dst_id)#add this element
+                    changed=1 # mark that, we changed in the image
+            #----==============================================================================================================#
 
             if changed == 1:  # if we changed the image
                 image_operations.update_image()  # update the image this for error pop up widget
 
 
             # we made it!!!, just add this transaction
-            object_file.transaction.append({"src_id":"state_"+(transaction_src_id),
+            object_file.transaction.append(
+                               {"src_id":"state_"+(transaction_src_id),
                                 "dst_id":"state_"+(transaction_dst_id),
                                 "input":str(transaction_input),
                                 "output":str(transaction_output)})
 
 
             #add this transaction to the output msg
-            connected_transaction_as_string= connected_transaction_as_string+"src state : "+(transaction_src_id)+", dst state : "+(transaction_dst_id)+",input : " +str(transaction_input)+ ", output : "+str(transaction_output)+"\n"
-
+        connected_transaction_as_string= connected_transaction_as_string+"src state : "+(transaction_src_id).ljust(5)+", dst state : "+(transaction_dst_id).ljust(5)+",input : " +str(transaction_input).ljust(5)+ ", output : "+str(transaction_output).ljust(5)+"\n"
 
     #---------------------------------------------------------------------------#
     # we passed in every transaction #
@@ -474,7 +733,3 @@ def connect_transactions():
 
     return passed,log_config.start_of_log()+connected_transaction_as_string+log_config.end_of_log(),object_file.image
 #======================================================================================================================#
-
-
-
-
