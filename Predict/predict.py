@@ -99,7 +99,7 @@ def _main_(input_path_x,infer_model,infer_model_2,infer_model_3,infer_model_4,in
     #   Set some parameter
     ###############################
     train_net_size=416
-    net_h, net_w = 480, 480 # a multiple of 32, the smaller the faster 416, 416
+    net_h, net_w = 416, 416 # a multiple of 32, the smaller the faster 416, 416
     obj_thresh, nms_thresh = 0.90, .3  #obj_thresh = .5 mean if less than 50% sure ignore it, nms_thresh =.3 means if 30 % IOU for 2 boxes; merge them
 
 
