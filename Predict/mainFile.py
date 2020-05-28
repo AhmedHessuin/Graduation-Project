@@ -148,7 +148,8 @@ def loadOriginalImage(self):
     fileName, _ = QFileDialog.getOpenFileName(MainWindow, 'QFileDialog.getOpenFileName()', '',
                                               'Images (*.png *.jpeg *.jpg)', options=options)
     if fileName:
-        fileName = fileName[:-4] + ".png"
+        if (fileName[-4:] == ".PNG"):
+            fileName = fileName[:-4] + ".png"
         originalImage = QImage(fileName)
         if originalImage.isNull():
             QMessageBox.information(self, "Image Viewer", "Cannot load %s." % fileName)
