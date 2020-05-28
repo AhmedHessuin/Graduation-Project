@@ -58,7 +58,7 @@ def draw_on_image(image,boxes):
         elif (box.get_label()) == ("straight arrow") or (box.get_label()) == ("curved arrow"):
             color = [27, 189, 255]
         elif (box.get_label()) == ("incline arrow"):
-            color=[125,200,10]
+            color=[27, 189, 255]
 
         else:
             color = [166, 73, 36]  # this is for text and numbers
