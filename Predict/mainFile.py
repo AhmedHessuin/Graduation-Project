@@ -79,7 +79,6 @@ def signals(self):
     self.LoadImage.clicked.connect(self.loadOriginalImage)
     self.Predict.clicked.connect(self.predictObjects)
     self.Predicted_Export.clicked.connect(self.exportPredictedImage)
-    self.CheckConnection.clicked.connect(self.CheckConnectionValidation)
 
     self.GenerateVerilog.clicked.connect(self.Generate_VeriLog_Code)
 
@@ -130,7 +129,6 @@ def setAllDisabled(self):
     self.Predicted_Export.setEnabled(False)
 
     self.Predict.setEnabled(False)
-    self.CheckConnection.setEnabled(False)
     self.GenerateVerilog.setEnabled(False)
 
 
@@ -150,6 +148,7 @@ def loadOriginalImage(self):
     fileName, _ = QFileDialog.getOpenFileName(MainWindow, 'QFileDialog.getOpenFileName()', '',
                                               'Images (*.png *.jpeg *.jpg)', options=options)
     if fileName:
+        fileName = fileName[:-4] + ".png"
         originalImage = QImage(fileName)
         if originalImage.isNull():
             QMessageBox.information(self, "Image Viewer", "Cannot load %s." % fileName)
@@ -176,7 +175,6 @@ def loadOriginalImage(self):
         self.Predicted_RemoveAnchor.setEnabled(False)
         self.Predicted_Export.setEnabled(False)
 
-        self.CheckConnection.setEnabled(False)
         self.GenerateVerilog.setEnabled(False)
 
 
@@ -206,34 +204,8 @@ def predictObjects(self):
     self.Predicted_RemoveAnchor.setEnabled(True)
     self.Predicted_Export.setEnabled(True)
 
-    self.CheckConnection.setEnabled(True)
+    self.GenerateVerilog.setEnabled(True)
 
-    self.GenerateVerilog.setEnabled(False)
-
-
-def CheckConnectionValidation(self):
-    '''
-    function run automatic check to validate predict
-    :param self:
-    :return: void
-    '''
-
-
-    matching.connect_anchors()
-    a, b, c = matching.connect_transactions()
-
-    if (a == -1):
-        Dialog = QtWidgets.QDialog()
-        ui2 = GUI_Validation.Ui_Dialog()
-        ui2.setupUi(Dialog)
-        ui2.loadImage(b, c)
-        Dialog.exec()
-
-    elif (a == 1):
-        self.textEdit.setText(self.textEdit.toPlainText() + b)
-        self.textEdit.moveCursor(QtGui.QTextCursor.End)
-        self.set_Predicted_img()
-        self.GenerateVerilog.setEnabled(True)
 
 
 def exportPredictedImage(self):
@@ -301,7 +273,6 @@ def Predicted_img_mousePress(self, event):
                 text = (image_operations.remove_element(remove_header, remove_element))
                 self.textEdit.setText(self.textEdit.toPlainText() + text)
                 self.textEdit.moveCursor(QtGui.QTextCursor.End)
-                self.GenerateVerilog.setEnabled(False)
             self.set_Predicted_img()
 
     if (self.Predicted_AddAnchor.isChecked()):
@@ -349,7 +320,7 @@ def Predicted_img_mouseRelease(self, event):
             elif (object_file.anchorDialogChoice == "State Condition"):
                 text=image_operations.add_element(minX, minY, maxX, maxY, "state condition")
             elif (object_file.anchorDialogChoice == "Arrow"):
-                text=image_operations.add_element(minX, minY, maxX, maxY, "curved arrow")
+                text=image_operations.add_element(minX, minY, maxX, maxY, "straight arrow")
             elif (object_file.anchorDialogChoice == "Arrow Head"):
                 text=image_operations.add_element(minX, minY, maxX, maxY, "arrow head")
             elif (object_file.anchorDialogChoice == "Loop Back Arrow"):
@@ -359,7 +330,6 @@ def Predicted_img_mouseRelease(self, event):
 
             self.textEdit.setText(self.textEdit.toPlainText() + text)
             self.textEdit.moveCursor(QtGui.QTextCursor.End)
-            self.GenerateVerilog.setEnabled(False)
             self.set_Predicted_img()
 
 def set_Predicted_img(self):
@@ -502,9 +472,40 @@ def Generate_VeriLog_Code(self):
     :param self: 
     :return: void
     '''
-    text=transactionToVerilog.transactionToVerilog("Module_0",object_file.transaction)
-    self.textEdit.setText(self.textEdit.toPlainText() + text)
-    self.textEdit.moveCursor(QtGui.QTextCursor.End)
+
+    matching.connect_anchors()
+    a, b, c = matching.connect_transactions()
+
+    if (a == -1):
+        reply = QMessageBox.question(MainWindow, 'message', "We found some logical errors in prediction that need manual correction, Do you want to proceed with verilog file generation?",
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if (reply == QMessageBox.Yes):
+            object_file.safe_mode = -1
+            matching.connect_anchors()
+            a, b, c = matching.connect_transactions()
+            text = transactionToVerilog.transactionToVerilog("Module_0", object_file.transaction)
+            self.textEdit.setText(self.textEdit.toPlainText() + text)
+            self.textEdit.moveCursor(QtGui.QTextCursor.End)
+            object_file.safe_mode = 1
+
+        elif (reply == QMessageBox.No):
+            object_file.safe_mode = 1
+            Dialog = QtWidgets.QDialog()
+            ui2 = GUI_Validation.Ui_Dialog()
+            ui2.setupUi(Dialog)
+            ui2.loadImage(b, c)
+            Dialog.exec()
+
+    elif (a == 1):
+        self.textEdit.setText(self.textEdit.toPlainText() + b)
+        self.textEdit.moveCursor(QtGui.QTextCursor.End)
+        self.set_Predicted_img()
+        text = transactionToVerilog.transactionToVerilog("Module_0", object_file.transaction)
+        self.textEdit.setText(self.textEdit.toPlainText() + text)
+        self.textEdit.moveCursor(QtGui.QTextCursor.End)
+
+
+
 
 
 
@@ -558,7 +559,6 @@ Ui_MainWindow.loadOriginalImage = loadOriginalImage
 Ui_MainWindow.predictObjects = predictObjects
 Ui_MainWindow.exportPredictedImage = exportPredictedImage
 Ui_MainWindow.set_Predicted_img = set_Predicted_img
-Ui_MainWindow.CheckConnectionValidation = CheckConnectionValidation
 
 Ui_MainWindow.Generate_VeriLog_Code = Generate_VeriLog_Code
 
