@@ -506,18 +506,6 @@
              </property>
             </widget>
            </item>
-           <item>
-            <widget class="QPushButton" name="CheckConnection">
-             <property name="font">
-              <font>
-               <pointsize>11</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>Check Connection</string>
-             </property>
-            </widget>
-           </item>
           </layout>
          </item>
          <item>
