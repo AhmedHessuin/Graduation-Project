@@ -7,7 +7,8 @@
   * best performance with images 1600*1200.
   * input images resized to 1600*1200 from small images lead to incorrect predict.
   * no words in the image, it can lead to false predict.
-  * if the gui Crash, check the input image.
+  * if the gui Crash, check the input image and check if the input image justify the opencv imread function or no.
+  
   
 # training files
 * training images and annotations
