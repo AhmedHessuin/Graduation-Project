@@ -1,7 +1,6 @@
 # Graduaiton-Project
 # About Project:
-# Notes
-* input specification 
+# input specification 
   * .jpg .png .JPEG 
   * the input images shouldn't be small images like 280*280 or something like that, at least 800*600
   * the input images can't be sharpened, this lead to false/no predict
