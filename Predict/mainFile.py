@@ -329,8 +329,12 @@ def Predicted_img_mouseRelease(self, event):
                 text=image_operations.add_element(minX, minY, maxX, maxY, "state")
             elif (object_file.anchorDialogChoice == "State Condition"):
                 text=image_operations.add_element(minX, minY, maxX, maxY, "state condition")
-            elif (object_file.anchorDialogChoice == "Arrow"):
+            elif (object_file.anchorDialogChoice == "Straight Arrow"):
                 text=image_operations.add_element(minX, minY, maxX, maxY, "straight arrow")
+            elif (object_file.anchorDialogChoice == "Inclined Arrow"):
+                text=image_operations.add_element(minX, minY, maxX, maxY, "incline arrow")
+            elif (object_file.anchorDialogChoice == "Curved Arrow"):
+                text=image_operations.add_element(minX, minY, maxX, maxY, "curved arrow")
             elif (object_file.anchorDialogChoice == "Arrow Head"):
                 text=image_operations.add_element(minX, minY, maxX, maxY, "arrow head")
             elif (object_file.anchorDialogChoice == "Loop Back Arrow"):
