@@ -324,16 +324,18 @@ def connect_anchors():
             second_key.append("loop back arrow")
             second_key.append("straight arrow")
             second_key.append("incline arrow")
+            second_key.append("curved arrow")
 
-        elif key == "straight arrow" or key == "incline arrow":
+        elif key == "straight arrow" or key == "incline arrow" or key=="curved arrow":
             second_key.append("state")
-            # second_key.append("state condition")
+
 
         elif key == "arrow head":
             second_key.append("state")
             second_key.append("straight arrow")
             second_key.append("incline arrow")
             second_key.append("loop back arrow")
+            second_key.append("curved arrow")
 
         elif key == "0" or key == "1" or key == "2" or key == "3" or key == "4" or key == "5" \
                 or key == "6" or key == "7" or key == "8" or key == "9":
