@@ -76,7 +76,9 @@ def signals(self):
     :param self:
     :return: void
     '''
-    self.LoadImage.clicked.connect(self.loadOriginalImage)
+    self.LoadComputrizedImage.clicked.connect(self.loadComputrized)
+    self.LoadHandWrittenImage.clicked.connect(self.loadHandWritten)
+
     self.Predict.clicked.connect(self.predictObjects)
     self.Predicted_Export.clicked.connect(self.exportPredictedImage)
 
@@ -131,7 +133,14 @@ def setAllDisabled(self):
     self.Predict.setEnabled(False)
     self.GenerateVerilog.setEnabled(False)
 
+def loadComputrized(self):
+    object_file.hand_written = False
+    self.loadOriginalImage()
 
+def loadHandWritten(self):
+    object_file.hand_written = True
+    self.loadOriginalImage()
+    
 def loadOriginalImage(self):
     '''
     function load image of state machine to the GUI
@@ -557,6 +566,8 @@ Ui_MainWindow.getPredictedImage = getPredictedImage
 
 
 Ui_MainWindow.loadOriginalImage = loadOriginalImage
+Ui_MainWindow.loadComputrized = loadComputrized
+Ui_MainWindow.loadHandWritten = loadHandWritten
 Ui_MainWindow.predictObjects = predictObjects
 Ui_MainWindow.exportPredictedImage = exportPredictedImage
 Ui_MainWindow.set_Predicted_img = set_Predicted_img
