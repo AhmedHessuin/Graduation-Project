@@ -26,7 +26,6 @@ def image_preprocessing(image,label="nothing"):
     im=image.copy()#copy of the image
     width = im.shape[0]  # the width of the image
     height = im.shape[1]  # the height of the image
-
     ratio_factor=2
     resize_width_value = float(width * ratio_factor)  # new width
     resize_height_value = float(height * ratio_factor)  # new height
@@ -69,8 +68,8 @@ def reshape_state(img):
     height=img.shape[0]# y axis
     center_y=int ((height)/2)
     center_x=int(width/2)
-    perecntage_of_extra_width=  (30 /100)
-    perecntage_of_extra_height = (30 / 100)
+    perecntage_of_extra_width=  (20 /100)
+    perecntage_of_extra_height = (20 / 100)
 
     extra_width_to_center=int(width * perecntage_of_extra_width)
     extra_height_to_center = int(height * perecntage_of_extra_height)
