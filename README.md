@@ -1,9 +1,9 @@
 # Graduaiton-Project
 # About Project:
-# input specification 
-  * .jpg .png .JPEG 
+# input constrains 
+  * image type -> .jpg .png .JPEG 
   * the input images shouldn't be small images like 280*280 or something like that, at least 800*600.
-  * the input images can't be sharpened, this lead to false/no predict.
+  * the input images can't be sharpened, this lead to false/no predict, example http://madebyevan.com/fsm/ save images as sharpened image that need to be edit with paint.
   * best performance with images 1600*1200.
   * input images resized to 1600*1200 from small images lead to incorrect predict.
   * no words in the image, it can lead to false predict.
