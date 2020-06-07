@@ -487,7 +487,7 @@ def Generate_VeriLog_Code(self):
     a, b, c = matching.connect_transactions()
 
     if (a == -1):
-        reply = QMessageBox.question(MainWindow, 'message', "We found some logical errors in prediction that need manual correction, Do you want to proceed with verilog file generation?",
+        reply = QMessageBox.question(MainWindow, 'message', "Some logical errors were found, Do you want to ignore these errors and proceed with Verilog code generation?",
                                      QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if (reply == QMessageBox.Yes):
             object_file.safe_mode = -1
