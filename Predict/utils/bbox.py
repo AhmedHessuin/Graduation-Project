@@ -1,7 +1,6 @@
 '''
 @author ahmed hessuin
 '''
-#commented by sara khaled 
 import numpy as np
 from utils import object_file #my files
 from utils import anchor_sub_file
@@ -154,7 +153,7 @@ def config_boxes(image, boxes, labels, obj_thresh, quiet=True):
                 #waiting error indicate
                 pass
 
-            elif (label_str) == ("straight arrow") or (label_str) == ("curved arrow"):
+            elif (label_str) == ("straight arrow") or (label_str) == ("curved arrow") or label_str == "incline arrow":
                 #waiting error indicate
                 pass
 
