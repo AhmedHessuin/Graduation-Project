@@ -7,7 +7,9 @@ from utils import data_class as DC
 #======================================================================================================================#
 all_objects=[]
 object_id=0
-all_objects_as_dic={"/":[],"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[],"arrow head":[],"state condition":[],"loop back arrow":[],"state":[],"straight arrow":[],"incline arrow":[]}
+all_objects_as_dic = {"/": [], "0": [], "1": [], "2": [], "3": [], "4": [], "5": [], "6": [], "7": [],
+                                  "8": [], "9": [], "arrow head": [], "state condition": [], "loop back arrow": [],
+                                  "state": [], "straight arrow": [], "incline arrow": [], "curved arrow": []}
 transaction=[]
 undo_all_objects=[]
 original_image=0
