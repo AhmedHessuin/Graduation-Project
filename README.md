@@ -9,7 +9,7 @@
   * input images resized to 1600 * 1200 from small images lead to incorrect predict.
   * no words in the image, it can lead to false predict.
   * if the gui Crash, check the input image and check if the input image justify the opencv imread function or no.
-  * watch Alpha in project demo section
+  * watch Comprehensive Tutoria min 17:08 for http://madebyevan.com/fsm/ example in project demo section
   
   
 # training files
