@@ -115,5 +115,5 @@ This python function takes 2 arguments : The module name as a string , and the l
  * cudnn
  * OpenCv
 # Project Demo:
- * [Demo Link](https://drive.google.com/open?id=1DU-FfDiuBAhmYHOsoOOwWzaueoBSbYg8)
- * [Alpha Link](https://youtu.be/YkMj3Dj1kIA)
+ * [Demo Link (4:31)](https://drive.google.com/open?id=1DU-FfDiuBAhmYHOsoOOwWzaueoBSbYg8)
+ * [Comprehensive Tutorial (18:02)](https://youtu.be/YkMj3Dj1kIA)
