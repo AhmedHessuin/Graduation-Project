@@ -83,24 +83,26 @@ def connect_arrow_head_with_one_arrow(arrow_head):
     :param arrow_head: arrow head anchor, DC
     :return: void
     '''
-    min_area=-1
-    previous_element=None
-    for element in arrow_head.get_connected_anchor():
+    number_of_connected_elements=len(arrow_head.get_connected_anchor())
+    # to make sure to remove all elements
+    for _ in range(number_of_connected_elements):
+        min_area = -1
+        previous_element = None
+        for element in arrow_head.get_connected_anchor():
+            if element.get_name()!="state":
+                #straight arrow, loop back arrow, incline
+                intersection_between_arrow_head_and_arrow=area_of_intersection(arrow_head,element)
+                if intersection_between_arrow_head_and_arrow > min_area:
+                    min_area=intersection_between_arrow_head_and_arrow #keep this arrow and update min
+                    if previous_element==None:
+                        previous_element=element
+                    else:
+                        arrow_head.get_connected_anchor().remove(previous_element)  # remove this element from the connected elements
+                        previous_element=element
 
-        if element.get_name()!="state":
-            #straight arrow, loop back arrow, incline
-            intersection_between_arrow_head_and_arrow=area_of_intersection(arrow_head,element)
-            if intersection_between_arrow_head_and_arrow > min_area:
-                min_area=intersection_between_arrow_head_and_arrow #keep this arrow and update min
-                if previous_element==None:
-                    previous_element=element
+
                 else:
-                    arrow_head.get_connected_anchor().remove(previous_element)  # remove this element from the connected elements
-                    previous_element=element
-
-
-            else:
-                arrow_head.get_connected_anchor().remove(element) #remove this element from the connected elements
+                    arrow_head.get_connected_anchor().remove(element) #remove this element from the connected elements
 #======================================================================================================================#
 def get_state_from_arrow_head(arrow_head):
     '''
@@ -120,37 +122,38 @@ def connect_state_condition_with_one_arrow(state_condition):
     :param state_condition:
     :return:
     '''
-    connected_arrows=[]
-    for element in state_condition.get_connected_anchor():
-        if element.get_name()=="incline arrow" or element.get_name()=="straight arrow":
-            connected_arrows.append(element)
-    if len(connected_arrows)>1:
-        #connected with straight arrow and incline
-        for element in connected_arrows:
-            if element.get_name()=="incline arrow":
-                state_condition.get_connected_anchor().remove(element)#remove the incline
-                element.get_connected_anchor().remove(state_condition)#remove the state condition
-                connected_arrows.remove(element)
+    number_of_elements=len(state_condition.get_connected_anchor())
+    for _ in range(number_of_elements):
+        connected_arrows = []
+        for element in state_condition.get_connected_anchor():
+            if element.get_name()=="incline arrow" or element.get_name()=="straight arrow":
+                connected_arrows.append(element)
+        if len(connected_arrows)>1:
+            #connected with straight arrow and incline
+            for element in connected_arrows:
+                if element.get_name()=="incline arrow":
+                    state_condition.get_connected_anchor().remove(element)#remove the incline
+                    element.get_connected_anchor().remove(state_condition)#remove the state condition
+                    connected_arrows.remove(element)
+        #connected with straight arrow only
+        if len(connected_arrows) > 1:
+            min_area = -1
+            previous_element = None
+            for element in connected_arrows:
 
-    #connected with straight arrow only
-    if len(connected_arrows) > 1:
-        min_area = -1
-        previous_element = None
-        for element in connected_arrows:
-
-            if element.get_name() == "straight arrow":
-                # straight arrow
-                intersection_between_state_condition_and_arrow = area_of_intersection(state_condition, element)
-                if intersection_between_state_condition_and_arrow > min_area:
-                    min_area = intersection_between_state_condition_and_arrow  # keep this arrow and update min
-                    if previous_element == None:
-                        previous_element = element
+                if element.get_name() == "straight arrow":
+                    # straight arrow
+                    intersection_between_state_condition_and_arrow = area_of_intersection(state_condition, element)
+                    if intersection_between_state_condition_and_arrow > min_area:
+                        min_area = intersection_between_state_condition_and_arrow  # keep this arrow and update min
+                        if previous_element == None:
+                            previous_element = element
+                        else:
+                            state_condition.get_connected_anchor().remove(
+                                previous_element)  # remove this element from the connected elements
+                            previous_element = element
                     else:
-                        state_condition.get_connected_anchor().remove(
-                            previous_element)  # remove this element from the connected elements
-                        previous_element = element
-                else:
-                    state_condition.get_connected_anchor().remove(element)  # remove this element from the connected elements
+                        state_condition.get_connected_anchor().remove(element)  # remove this element from the connected elements
 #======================================================================================================================#
 def get_src_state_for_incline_arrow_old_function():
     '''
