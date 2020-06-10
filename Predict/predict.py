@@ -116,6 +116,24 @@ def clean_straight_arrow_with_other_arrows_or_state():
                     except:
                         continue
 
+def clean_incline_arrow_with_state():
+    threshold = 90 / 100
+    nothing_to_remove = True
+    while (nothing_to_remove == True):
+        nothing_to_remove = False
+        for element in object_file.all_objects_as_dic["incline arrow"]:
+            element_area = matching.get_anchor_area(element)
+            threshold_area = threshold * element_area
+
+
+            for second_element in object_file.all_objects_as_dic["state"]:
+                if matching.area_of_intersection(element, second_element) > threshold_area:
+                    try:
+                        object_file.all_objects_as_dic["incline arrow"].remove(element)
+                        nothing_to_remove = True
+                    except:
+                        continue
+
 
 #======================================================================================================================#
 #==================================================== main ============================================================#
@@ -179,17 +197,16 @@ def _main_(input_path_x,infer_model,infer_model_2,infer_model_3,infer_model_4,in
         for image_path in image_paths:
             ########################################## image preprocess #############################
             image = cv2.imread(image_path)# load the image path                                     #
+            #image=image_preprocess.resize_image_less_than_600_800(image)                            #
             object_file.original_image=cv2.imread(image_path) # set the original image              #
-            image=image_preprocess.start_pre(image,condition=object_file.hand_written)              #
-            image_as_1600_1200 = image.copy()                                                       #
-            image_as_1600_1200 = cv2.resize(image_as_1600_1200, (1600, 1200))                       #
-            line_detector.line_detector(image_as_1600_1200)                                         #
+            image=image_preprocess.start_pre(image,condition=object_file.hand_written)              #                    #
+            line_detector.line_detector(image)                                                      #
             #########################################################################################
 
             ########################################## predict the bounding boxes ##################################################
             boxes = get_yolo_boxes(infer_model, [image], net_h, net_w, model_1_anchors, obj_thresh, nms_thresh)[0]                 #
             boxes_2=get_yolo_boxes(infer_model_2, [image], net_h, net_w, model_2_anchors, obj_thresh, nms_thresh)[0]               #
-            boxes_3 =get_yolo_boxes(infer_model_3, [image_as_1600_1200], net_h, net_w, model_3_anchors, obj_thresh, nms_thresh)[0] #
+            boxes_3 =get_yolo_boxes(infer_model_3, [image], net_h, net_w, model_3_anchors, obj_thresh, nms_thresh)[0] #
             boxes_4 =get_yolo_boxes(infer_model_4, [image], net_h, net_w, model_4_anchors, obj_thresh, nms_thresh)[0]              #                                                                                                                 #
             ########################################################################################################################                                                                                                                     #
 
@@ -203,10 +220,8 @@ def _main_(input_path_x,infer_model,infer_model_2,infer_model_3,infer_model_4,in
             config_boxes(image, boxes_4, model_4_label, obj_thresh)  #
             ##########################################################
 
-
-            display_image=cv2.resize(object_file.original_image,(1600,1200))
             ######################### set the exported path ######################
-            set_inputpath_and_image(display_image,image_path)                    #
+            set_inputpath_and_image(image,image_path)                    #
             ######################################################################
 #======================================================================================================================#
 def predict_main(input_path):
@@ -220,6 +235,7 @@ def predict_main(input_path):
     #=====================================================================#
     #image_operations.set_anchors_to_display_image_1600_1200()
     clean_straight_arrow_with_other_arrows_or_state()
+    clean_incline_arrow_with_state()
     image_operations.update_image()
     #---------------------------------------------------------------------#
     return log_config.start_of_log()+"predict done"+log_config.end_of_log()
