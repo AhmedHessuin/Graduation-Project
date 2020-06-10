@@ -746,7 +746,7 @@ def connect_transactions():
     '''
 
     connected_transaction_as_string = "check transactions done :- \n" # the output text
-    dump_id=0 # the dump id for a state without id
+    object_file.dumb_id  # the dump id for a state without id
     object_file.transaction=[]# reset transaction before using this function
     object_file.valid_verilog = False
     changed=-1 # flag variable to determine update the image or no
@@ -771,13 +771,23 @@ def connect_transactions():
             if x_element.get_name() != "state": # if this element not a state, thus it's an straight arrow or loop back arrow or any kind of arrow
                 if x_element.get_name() == "loop back arrow":#if it's loop back arrow
                     src_element = dst_element # the src element is the dst element
-                    con_element = get_state_condition(x_element) # get the state condition for this arrow
+                    try:
+                        con_element = get_state_condition(x_element) # get the state condition for this arrow
+                    except:
+                        con_element=None
                 # elif x_element.get_name()=="incline arrow":
                 #     src_element=get_src_state_for_incline_arrow(arrow_head,x_element)
                 #     con_element=get_state_condition_for_inclined_line(arrow_head,x_element)
                 else:# if it's not an loop back arrow
-                    src_element = get_src_element(dst_element.get_id(), x_element.get_connected_anchor())# get the src element as the another satet of this arrow
-                    con_element = get_state_condition(x_element)# get the state condition for this arrow
+
+                    try:
+                        src_element = get_src_element(dst_element.get_id(), x_element.get_connected_anchor())# get the src element as the another satet of this arrow
+                    except:
+                        src_element=None
+                    try:
+                        con_element = get_state_condition(x_element)# get the state condition for this arrow
+                    except:
+                        con_element=None
 
                 if src_element!=None :# if the src element  not None, we found a src state
                     src_element_id=get_state_id(src_element) # get the src state id as list of anchors
@@ -811,31 +821,31 @@ def connect_transactions():
             if object_file.safe_mode==1:
                 if transaction_src_id=="" and transaction_dst_id!="": # if the src state id string is empty, but we have dst state id as string
                     # if the state has no id generate one for it
-                    transaction_src_id="g_"+str(dump_id)# generating the id with tag g_ as string
-                    dump_id = dump_id + 1 # increment the dummy id
+                    transaction_src_id="g_"+str(object_file.dumb_id )# generating the id with tag g_ as string
+                    object_file.dumb_id  = object_file.dumb_id  + 1 # increment the dummy id
                     gen_element_src_id=generate_state_id_dumy(transaction_src_id,src_element)# generate the id as element
                     add_state_id(gen_element_src_id)# append this element in the dictionary
                     changed=1# mark we changed on the image
                     #=============================================================#
                 if transaction_dst_id=="" and transaction_src_id!="":# if the dst state id string is empty, but we have src state id as string
                     # if the state has no id generate one for it
-                    transaction_dst_id="g_"+str(dump_id)# generating the id with tag g_ as string
-                    dump_id = dump_id + 1# increment the dummy id
+                    transaction_dst_id="g_"+str(object_file.dumb_id )# generating the id with tag g_ as string
+                    object_file.dumb_id  = object_file.dumb_id  + 1# increment the dummy id
                     gen_element_dst_id=generate_state_id_dumy(transaction_dst_id,dst_element)# generate the id as element
                     add_state_id(gen_element_dst_id)#append this element in the dictionary
                     changed=1# mark we changed on the image
                     #=============================================================#
                 if transaction_src_id=="" and transaction_dst_id=="":# if we didn't find a src id elements or dst id elements
-                    transaction_src_id="g_"+str(dump_id)# generate dump id as string 1
-                    dump_id = dump_id + 1#update the dump id
-                    transaction_dst_id = "g_" + str(dump_id)# generate dump id as string 2
-                    dump_id = dump_id + 1#update the dump id
+                    transaction_src_id="g_"+str(object_file.dumb_id )# generate dump id as string 1
+                    object_file.dumb_id  = object_file.dumb_id  + 1#update the dump id
+                    transaction_dst_id = "g_" + str(object_file.dumb_id )# generate dump id as string 2
+                    object_file.dumb_id  = object_file.dumb_id  + 1#update the dump id
 
                     if src_element.get_xmin()== dst_element.get_xmin() and src_element.get_ymin()==dst_element.get_ymin():# if the src state and the dst state have the same xmin and ymin,thus this is the same condition
                         gen_element_src_id = generate_state_id_dumy(transaction_src_id, src_element)#just add one id
                         transaction_dst_id =transaction_src_id  # the dst id is the src id
                         add_state_id(gen_element_src_id)#add this id as an element
-                        dump_id=dump_id-1#remove the extra dump id as not used
+                        object_file.dumb_id =object_file.dumb_id -1#remove the extra dump id as not used
 
                     else:# the two states are diffrent, not the same state
                         gen_element_src_id = generate_state_id_dumy(transaction_src_id, src_element)#generate the first id element
