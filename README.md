@@ -117,3 +117,4 @@ This python function takes 2 arguments : The module name as a string , and the l
 # Project Demo:
  * [Demo Link (4:31)](https://drive.google.com/open?id=1DU-FfDiuBAhmYHOsoOOwWzaueoBSbYg8)
  * [Comprehensive Tutorial (18:02)](https://youtu.be/YkMj3Dj1kIA)
+ * [ALPHA VERSION 1.1](https://youtu.be/02Rc3QT3O5U)
