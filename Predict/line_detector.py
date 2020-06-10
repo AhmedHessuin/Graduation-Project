@@ -103,13 +103,17 @@ def line_detector(img):
     ########################## variable section ##########################
     horz_copy = img.copy()  #
     vert_copy = img.copy()  #
-    incline_copy = img.copy()  #
+    incline_left_up_copy = img.copy()  #
+    incline_left_down_copy = img.copy()  #
     green = [0, 255, 0]  #
     blue = [255, 0, 0]  #
+    red = [0,0,255]
     lower_blue = np.array([110, 50, 50])  #
     upper_blue = np.array([130, 255, 255])  #
     lower_green = np.array([36, 25, 25])  #
     upper_green = np.array([70, 255, 255])  #
+    lower_red = np.array([0, 50, 50])#
+    upper_red = np.array([10, 255, 255])#
     min_len = 80  #
     thrshold = 100  #
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  #
@@ -129,7 +133,12 @@ def line_detector(img):
         x1, y1, x2, y2 = line  #
         type_dump = get_line_type_for_line_array(x1, y1, x2, y2)  #
         if type_dump == "i":  #
-            cv2.line(incline_copy, (x1, y1), (x2, y2), green, 3)  #
+            if y1>y2:
+                cv2.line(incline_left_down_copy, (x1, y1), (x2, y2), green, 3)
+            if y2>y1:
+                cv2.line(incline_left_up_copy, (x1, y1), (x2, y2), red, 3)  #
+            else:
+                "error"
         else:  #
             if type_dump == 'h':  #
                 cv2.line(horz_copy, (x1, y1), (x2, y2), blue, 3)  #
@@ -140,8 +149,11 @@ def line_detector(img):
     ######### get the lines only from the image ##########################
     hsv_vert = cv2.cvtColor(vert_copy, cv2.COLOR_BGR2HSV)                #
     hsv_horz = cv2.cvtColor(horz_copy, cv2.COLOR_BGR2HSV)                #
-    hsv_incline = cv2.cvtColor(incline_copy, cv2.COLOR_BGR2HSV)          #
-    mask_incline = cv2.inRange(hsv_incline, lower_green, upper_green)    #
+    hsv_incline_left_up = cv2.cvtColor(incline_left_up_copy, cv2.COLOR_BGR2HSV)          #
+    hsv_incline_left_down = cv2.cvtColor(incline_left_down_copy, cv2.COLOR_BGR2HSV)          #
+
+    mask_incline_left_down = cv2.inRange(hsv_incline_left_down, lower_green, upper_green)    #
+    mask_incline_left_up = cv2.inRange(hsv_incline_left_up, lower_red, upper_red)
     mask_vert = cv2.inRange(hsv_vert, lower_blue, upper_blue)            #
     mask_horz = cv2.inRange(hsv_horz, lower_blue, upper_blue)            #
     ######################################################################
@@ -199,9 +211,9 @@ def line_detector(img):
                                 str("0.9"), object_file.object_id))  # insert the anchor in the dictionary
         object_file.object_id = object_file.object_id + 1
     # =========================================================================================================#
-
-    # get contours for incline and cross lines
-    contours, hierarchy = cv2.findContours(mask_incline, cv2.RETR_EXTERNAL,
+    # un safe version
+    # get contours for incline left down
+    contours, hierarchy = cv2.findContours(mask_incline_left_down, cv2.RETR_EXTERNAL,
                                            cv2.CHAIN_APPROX_NONE)  # find the contours  of every object not inside another object
     # ---------------------------#
     for cnt in contours:  # for every contour
@@ -215,6 +227,29 @@ def line_detector(img):
             # this is for noise on curved arrow
             continue
 
+
+        object_file.all_objects_as_dic['incline arrow'].append(
+            object_file.DC.Data('incline arrow',
+                                x, y+h,
+                                x+w , y,
+                                str("0.9"), object_file.object_id))  # insert the anchor in the dictionary
+        object_file.object_id = object_file.object_id + 1
+        #----------------------------------------------------------#
+        # get contours for incline left up
+
+    contours, hierarchy = cv2.findContours(mask_incline_left_up, cv2.RETR_EXTERNAL,
+                                           cv2.CHAIN_APPROX_NONE)  # find the contours  of every object not inside another object
+    # ---------------------------#
+    for cnt in contours:  # for every contour
+        [x, y, w, h] = cv2.boundingRect(cnt)  # get the contour width and heightmmmm
+        area = w * h
+        incline_arrow_ratio_theshold = 0.5
+        if area < cnt_area_threshold:
+            continue
+
+        if h < incline_arrow_ratio_theshold * w or w < incline_arrow_ratio_theshold * h:
+            # this is for noise on curved arrow
+            continue
         object_file.all_objects_as_dic['incline arrow'].append(
             object_file.DC.Data('incline arrow',
                                 x, y,
