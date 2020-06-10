@@ -9,6 +9,21 @@ from utils import log_config
 import numpy as np
 import cv2
 #======================================================================================================================#
+def draw_incline_line(image,point1_x,point1_y,point2_x,point2_y):
+    tolerance_in_x=40
+    point1_x=int(point1_x-tolerance_in_x/2)
+    point2_x=int(point2_x-tolerance_in_x/2)
+    point3_x=int(point1_x+tolerance_in_x)
+    point3_y=int(point1_y)
+    point4_x=int(point2_x+tolerance_in_x)
+    point4_y=int(point2_y)
+    cv2.line(image,pt1=(point1_x,point1_y),pt2=(point3_x,point3_y),thickness=3,color=[27, 189, 255])
+    cv2.line(image, pt1=(point2_x, point2_y), pt2=(point4_x, point4_y), thickness=3, color=[27, 189, 255])
+    cv2.line(image, pt1=(point1_x, point1_y), pt2=(point2_x, point2_y), thickness=3, color=[27, 189, 255])
+    cv2.line(image, pt1=(point3_x, point3_y), pt2=(point4_x, point4_y), thickness=3, color=[27, 189, 255])
+
+
+#======================================================================================================================#
 def get_image():
     '''
     description : get the original image use it before any draw on the image
@@ -27,8 +42,8 @@ def draw_elements():
         headers_in_reverse.insert(0, header)
 
     for header in headers_in_reverse:# for every header(key) in the dictionary
-        for element in range(len(object_file.all_objects_as_dic[header])):# for every element  in this list
-            draw_on_image(object_file.image, object_file.all_objects_as_dic[header])# draw this element on the image
+        #for element in range(len(object_file.all_objects_as_dic[header])):# for every element  in this list
+        draw_on_image(object_file.image, object_file.all_objects_as_dic[header])# draw this element on the image
 #======================================================================================================================#
 def draw_on_image(image,boxes):
     '''
@@ -40,7 +55,6 @@ def draw_on_image(image,boxes):
     :return: void
     '''
     color=[1,2,3]
-
     #============ set color for every label ===========#
     for box in boxes:
         thickness=2 #default value
@@ -66,13 +80,18 @@ def draw_on_image(image,boxes):
 
 
         #===============================================#
-        rectangle(img=image, pt1=(box.get_xmin(), box.get_ymin()), pt2=(box.get_xmax(), box.get_ymax()), color=color, thickness=thickness)  # rectangle format
-        if box.get_name()=="0" or box.get_name()=="1" or box.get_name()=="2" or box.get_name()=="3" or \
-                box.get_name() == "4" or box.get_name()=="5" or  box.get_name()=="6" or  box.get_name()=="7" or \
-                box.get_name() == "8" or box.get_name()=="9" or box.get_name()[0]=="g": #box.get_name()[0]=="g":  this condition for generated ids
-            text_color=color
-            cv2.putText(image,box.get_name(),(box.get_xmin(),box.get_ymax())
-                        ,cv2.FONT_HERSHEY_SIMPLEX,1,text_color,2,cv2.LINE_4)
+        if box.get_label()==("incline arrow"):
+
+            draw_incline_line(image=image,point1_x=box.get_xmin(),point1_y=box.get_ymin(),
+                              point2_x=box.get_xmax(),point2_y=box.get_ymax())
+        else:
+            rectangle(img=image, pt1=(box.get_xmin(), box.get_ymin()), pt2=(box.get_xmax(), box.get_ymax()), color=color, thickness=thickness)  # rectangle format
+            if box.get_name()=="0" or box.get_name()=="1" or box.get_name()=="2" or box.get_name()=="3" or \
+                    box.get_name() == "4" or box.get_name()=="5" or  box.get_name()=="6" or  box.get_name()=="7" or \
+                    box.get_name() == "8" or box.get_name()=="9" or box.get_name()[0]=="g": #box.get_name()[0]=="g":  this condition for generated ids
+                text_color=color
+                cv2.putText(image,box.get_name(),(box.get_xmin(),box.get_ymax())
+                            ,cv2.FONT_HERSHEY_SIMPLEX,1,text_color,2,cv2.LINE_4)
 
     #========================================#
 #======================================================================================================================#
@@ -215,7 +234,7 @@ def set_anchors_to_display_image_1600_1200():
 def set_anchor_to_original_image(xmin,ymin,xmax,ymax):
     '''
     description : change the anchor dimension to the original image this is helpful in
-    anchor subfile to get the state condition from the original image with high pixel value
+    anchor sub file to get the state condition from the original image with high pixel value
     :param xmin: anchor x min , int
     :param ymin: anchor y min , int
     :param xmax: anchor x max , int
@@ -233,3 +252,4 @@ def set_anchor_to_original_image(xmin,ymin,xmax,ymax):
     ymin_new=int(ymin*height_ratio)
     ymax_new=int(ymax*height_ratio)
     return xmin_new,ymin_new,xmax_new,ymax_new
+
