@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
+'''
+@author ahmed hessuin
+'''
 import cv2
 
 #=============================#
@@ -63,3 +65,32 @@ def preprocessing_handwritten(im,min_area=50):
 
     thresh=cv2.bitwise_not(thresh)
     return thresh
+#==================================#
+def resize_image_less_than_600_800(img):
+    '''
+    description: resize the small input images to 1600 1200
+    :param img:input image
+    :return:img
+    '''
+    height,width,depth=img.shape
+    if height<600 and width<800:
+        img=cv2.resize(img,(800,600))
+
+        color_white = [255, 255, 255]
+        left_border = 400
+        top_border = 300
+        right_border = 400
+        bottom_border = 300
+
+        img = cv2.copyMakeBorder(
+            img,
+            top=top_border,
+            bottom=bottom_border,
+            left=left_border,
+            right=right_border,
+            borderType=cv2.BORDER_CONSTANT,
+            value=color_white
+        )
+        return img
+    else:
+        return img
