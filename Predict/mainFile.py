@@ -308,20 +308,24 @@ def Predicted_img_mouseRelease(self, event):
         ui3.setupUi(Dialog)
         Dialog.exec()
 
+        minX=int(self.initial_X)
+        maxX=int(x)
+        minY=int(self.initial_Y)
+        maxY=int(y)
+        if object_file.anchorDialogChoice!="Inclined Arrow":
+            if (int(self.initial_X) < int(x)):
+                minX = int(self.initial_X)
+                maxX = int(x)
+            else:
+                minX = int(x)
+                maxX = int(self.initial_X)
 
-        if (int(self.initial_X) < int(x)):
-            minX = int(self.initial_X)
-            maxX = int(x)
-        else:
-            minX = int(x)
-            maxX = int(self.initial_X)
-
-        if (int(self.initial_Y) < int(y)):
-            minY = int(self.initial_Y)
-            maxY = int(y)
-        else:
-            minY = int(y)
-            maxY = int(self.initial_Y)
+            if (int(self.initial_Y) < int(y)):
+                minY = int(self.initial_Y)
+                maxY = int(y)
+            else:
+                minY = int(y)
+                maxY = int(self.initial_Y)
 
         if (object_file.anchorDialogResult == 1):
             text=""
