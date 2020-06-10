@@ -50,11 +50,14 @@ def area_of_intersection_with_incline_arrow(element,incline_arrow):
         else:
             return area_2
     if element.get_name()=="state condition":
-        def check_point_on_line(min,max,point):
-            if point>=min and point<=max:
-                return True
+        def check_point_on_line(Min,Max,point):
+            shared_lengh=0
+            if point>=Min and point<=Max:
+                shared_lengh=min(point-Min,Max-point)
+                return True,shared_lengh
             else:
-                return False
+                return False,shared_lengh
+
 
         new_point1_x=point1_x-point1_x
         new_point2_x=point2_x-point1_x
@@ -81,18 +84,30 @@ def area_of_intersection_with_incline_arrow(element,incline_arrow):
         check_x1 = element_point1_y / incline_slope
         check_x2 = element_point2_y / incline_slope
 
+        check_x1_condition,ret=check_point_on_line(new_point1_x,new_point2_x,check_x1)
+        check_x2_condition,ret=check_point_on_line(new_point1_x,new_point2_x,check_x2)
+        hit=0 # indicate errors
+        if check_x1_condition ==False:
+            check_x1=check_x2
+            hit=hit+1
+        if check_x2_condition==False:
+            check_x2=check_x1
+            hit=hit+1
 
-        check_1 = check_point_on_line(element_point1_x, element_point2_x, check_x1-tolerance)
-        check_2 = check_point_on_line(element_point1_x, element_point2_x, check_x2-tolerance)
+        if hit==2:
+            return 0
 
-        check_3 = check_point_on_line(element_point1_x, element_point2_x, check_x1 + tolerance)
-        check_4 = check_point_on_line(element_point1_x, element_point2_x, check_x2 + tolerance)
+        check_1,shared_1 = check_point_on_line(element_point1_x, element_point2_x, check_x1-tolerance)
+        check_2,shared_2 = check_point_on_line(element_point1_x, element_point2_x, check_x2-tolerance)
 
-        check_5 = check_point_on_line(element_point1_x, element_point2_x, check_x1 )
-        check_6 = check_point_on_line(element_point1_x, element_point2_x, check_x2 )
+        check_3,shared_3 = check_point_on_line(element_point1_x, element_point2_x, check_x1 + tolerance)
+        check_4,shared_4 = check_point_on_line(element_point1_x, element_point2_x, check_x2 + tolerance)
+
+        check_5,shared_5 = check_point_on_line(element_point1_x, element_point2_x, check_x1 )
+        check_6,shared_6 = check_point_on_line(element_point1_x, element_point2_x, check_x2 )
 
         if check_1 or check_2 or check_3 or check_4 or check_5 or check_6:
-            return 1000000
+            return max(shared_1,shared_2,shared_3,shared_4,shared_5,shared_6)
         else:
             return 0
 
@@ -229,32 +244,28 @@ def connect_state_condition_with_one_arrow(state_condition):
         for element in state_condition.get_connected_anchor():
             if element.get_name()=="incline arrow" or element.get_name()=="straight arrow":
                 connected_arrows.append(element)
-        if len(connected_arrows)>1:
-            #connected with straight arrow and incline
-            for element in connected_arrows:
-                if element.get_name()=="incline arrow":
-                    state_condition.get_connected_anchor().remove(element)#remove the incline
-                    element.get_connected_anchor().remove(state_condition)#remove the state condition
-                    connected_arrows.remove(element)
         #connected with straight arrow only
         if len(connected_arrows) > 1:
             min_area = -1
             previous_element = None
             for element in connected_arrows:
-
+                intersection_between_state_condition_and_arrow=0
                 if element.get_name() == "straight arrow":
                     # straight arrow
                     intersection_between_state_condition_and_arrow = area_of_intersection(state_condition, element)
-                    if intersection_between_state_condition_and_arrow > min_area:
-                        min_area = intersection_between_state_condition_and_arrow  # keep this arrow and update min
-                        if previous_element == None:
-                            previous_element = element
-                        else:
-                            state_condition.get_connected_anchor().remove(
-                                previous_element)  # remove this element from the connected elements
-                            previous_element = element
+                if element.get_name()=="incline arrow":
+                    #incline arrow
+                    intersection_between_state_condition_and_arrow=area_of_intersection_with_incline_arrow(state_condition,element)
+                if intersection_between_state_condition_and_arrow > min_area:
+                    min_area = intersection_between_state_condition_and_arrow  # keep this arrow and update min
+                    if previous_element == None:
+                        previous_element = element
                     else:
-                        state_condition.get_connected_anchor().remove(element)  # remove this element from the connected elements
+                        state_condition.get_connected_anchor().remove(
+                            previous_element)  # remove this element from the connected elements
+                        previous_element = element
+                else:
+                    state_condition.get_connected_anchor().remove(element)  # remove this element from the connected elements
 #======================================================================================================================#
 def get_src_state_for_incline_arrow_old_function():
     '''
@@ -448,6 +459,7 @@ def connect_anchors():
 
         # ===================================================#
         for element in object_file.all_objects_as_dic[key]:  # for every anchor in the key in the dictionary,for example  ->id=1, name= "/" .... if key ="/"
+
             # start search on the target key (second_key)
             for second_key_ in second_key:  # for every second_key for example ->"state condition" if key = "/"
                 for second_element in object_file.all_objects_as_dic[second_key_]:  # for every anchor in the second_key ->name=state condition, xmin=x, ymin =y, id =z ...
@@ -710,6 +722,17 @@ def error_checking(src_element,dst_element,con_element,src_element_id,dst_elemen
 
     return 1,"passed",object_file.image
 #======================================================================================================================#
+def sort_transactions_string(text):
+    '''
+    description: sort transaction to be readable
+    :param text: input text
+    :return: sorted text
+    '''
+    lines=text.split('\n')
+    lines=sorted(lines)
+    lines="\n".join(lines)
+    return lines
+#======================================================================================================================#
 def connect_transactions():
     '''
     description : this function match and find what is the src state , the dst state and the state condition for it.
@@ -835,7 +858,11 @@ def connect_transactions():
 
 
             #add this transaction to the output msg
-        connected_transaction_as_string= connected_transaction_as_string+"src state : "+(transaction_src_id).ljust(5)+", dst state : "+(transaction_dst_id).ljust(5)+",input : " +str(transaction_input).ljust(5)+ ", output : "+str(transaction_output).ljust(5)+"\n"
+        connected_transaction_as_string= connected_transaction_as_string+"src state : "+\
+                                         (transaction_src_id).ljust(5)+", dst state : "+\
+                                         (transaction_dst_id).ljust(5)+",input : " +\
+                                         str(transaction_input).ljust(5)+ ", output : "+\
+                                         str(transaction_output).ljust(5)+"\n"
 
     #---------------------------------------------------------------------------#
     # we passed in every transaction #
@@ -843,6 +870,6 @@ def connect_transactions():
         image_operations.update_image()#update the image
 
     object_file.valid_verilog=True #we can generate verilog code
-
+    connected_transaction_as_string=sort_transactions_string(connected_transaction_as_string)
     return passed,log_config.start_of_log()+connected_transaction_as_string+log_config.end_of_log(),object_file.image
 #======================================================================================================================#
