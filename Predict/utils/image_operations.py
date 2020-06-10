@@ -6,6 +6,7 @@ from cv2 import rectangle
 from utils import object_file
 from cv2 import imwrite
 from utils import log_config
+from utils import matching
 import numpy as np
 import cv2
 #======================================================================================================================#
@@ -111,20 +112,30 @@ def get_element_with_x_and_y(x_input,y_input):
     remove_element=None # index of the removed element
     for header in object_file.all_objects_as_dic.keys():
         for element in object_file.all_objects_as_dic[header]:
-                if element.get_xmin() < int(x_input) and \
-                 element.get_xmax()>int(x_input) and\
-                 element.get_ymin()<int(y_input) and\
-                 element.get_ymax()>int(y_input):
+            if element.get_xmin() < int(x_input) and \
+             element.get_xmax()>int(x_input) and\
+             element.get_ymin()<int(y_input) and\
+             element.get_ymax()>int(y_input) and header != "incline arrow":
+                element_width=element.get_xmax()-element.get_xmin()
+                element_height=element.get_ymax()-element.get_ymin()
+                element_area=element_width*element_height
+                if element_area < area:  # mark this element
+                    element_name = element.get_name()  # get the name
+                    area = element_area  # update the area
+                    remove_header = header  # mark the header
+                    remove_element = element  # mark the element
+            if header=="incline arrow":
+                dumb_element=object_file.DC.Data("state condition",x_input,y_input,x_input+10,y_input+10,"90")
+                element_area=matching.area_of_intersection_with_incline_arrow(dumb_element,element)
+                if element_area==0:
+                    continue
+                if element_area < area:  # mark this element
+                    element_name = element.get_name()  # get the name
+                    area = element_area  # update the area
+                    remove_header = header  # mark the header
+                    remove_element = element  # mark the element
 
-                    element_width=element.get_xmax()-element.get_xmin()
-                    element_height=element.get_ymax()-element.get_ymin()
-                    element_area=element_width*element_height
 
-                    if element_area<area: #mark this element
-                        element_name= element.get_name()#get the name
-                        area = element_area # update the area
-                        remove_header=header  # mark the header
-                        remove_element=element # mark the element
 
 
     if remove_element==None:
@@ -165,6 +176,12 @@ def add_element(x_min,y_min,x_max,y_max,name,accuracy="100%"):
     :return: text "added +" the name of the label
     '''
     # adding this anchor
+    if str(name)=="incline arrow":
+        if x_min>x_max:
+            x_min,x_max=x_max,x_min
+            y_min,y_max=y_max,y_min
+
+
     object_file.all_objects_as_dic[str(name)].append(object_file.DC.Data(str(name),str(x_min),str(y_min),str(x_max),str(y_max),str(accuracy),object_file.object_id))
     #update the object id
     object_file.object_id=object_file.object_id+1
