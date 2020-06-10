@@ -7,9 +7,98 @@ from utils import log_config
 from utils import image_operations
 import cv2
 def get_anchor_area(element):
+    '''
+    description: get the element anchor area
+    :param element: anchor like arrow head or any rectangle anchor
+    :return: area
+    '''
     width=element.get_xmax()-element.get_xmin()
     height=element.get_ymax()-element.get_ymin()
+    if width<0:
+        width=width*-1
+    if height<0:
+        height=height*-1
     return width*height
+#======================================================================================================================#
+def area_of_intersection_with_incline_arrow(element,incline_arrow):
+    '''
+    description: this function take element anchor and incline arrow anchor
+    make a 2 small anchors in the two end of the incline arrow, then check the
+    intersection between the 2 small anchors and the element anchor and return the
+    max intersection area between this 2 small anchors and the element anchor
+    :param element: anchor like arrow head or state, DATA
+    :param incline_arrow: incline arrow anchor, DATA
+    :return: max intersection between the element anchor and the incline arrow anchor
+    '''
+    point1_x = incline_arrow.get_xmin()
+    point1_y = incline_arrow.get_ymin()
+    point2_x = incline_arrow.get_xmax()
+    point2_y = incline_arrow.get_ymax()
+    tolerance = 20
+    if element.get_name()=="arrow head" or element.get_name()=="state":
+        incline_end_1 = object_file.DC.Data("dumb",point1_x-tolerance,point1_y-tolerance,
+                                          point1_x+tolerance,point1_y+tolerance,"90")
+
+        incline_end_2 = object_file.DC.Data("dumb",point2_x-tolerance,point2_y-tolerance,
+                                          point2_x+tolerance,point2_y+tolerance,"90")
+
+
+        area_1 = area_of_intersection(element,incline_end_1)
+        area_2 = area_of_intersection(element,incline_end_2)
+        if area_1>area_2:
+            return area_1
+        else:
+            return area_2
+    if element.get_name()=="state condition":
+        def check_point_on_line(min,max,point):
+            if point>=min and point<=max:
+                return True
+            else:
+                return False
+
+        new_point1_x=point1_x-point1_x
+        new_point2_x=point2_x-point1_x
+        new_point1_y=point1_y-point1_y
+        new_point2_y=point2_y-point1_y
+        element_point1_x=element.get_xmin()-point1_x
+        element_point2_x=element.get_xmax()-point1_x
+        element_point1_y=element.get_ymin()-point1_y
+        element_point2_y=element.get_ymax()-point1_y
+
+        incline_slope=new_point2_y/new_point2_x
+        '''
+        equation: y=mx, where m is the incline_slope.
+        now get the y of the state condition and check if x is in range or no
+        then use tolerance to right and left
+            
+          -------
+          | /   |
+          -/----|
+          /
+         / 
+        /
+        '''
+        check_x1 = element_point1_y / incline_slope
+        check_x2 = element_point2_y / incline_slope
+
+
+        check_1 = check_point_on_line(element_point1_x, element_point2_x, check_x1-tolerance)
+        check_2 = check_point_on_line(element_point1_x, element_point2_x, check_x2-tolerance)
+
+        check_3 = check_point_on_line(element_point1_x, element_point2_x, check_x1 + tolerance)
+        check_4 = check_point_on_line(element_point1_x, element_point2_x, check_x2 + tolerance)
+
+        check_5 = check_point_on_line(element_point1_x, element_point2_x, check_x1 )
+        check_6 = check_point_on_line(element_point1_x, element_point2_x, check_x2 )
+
+        if check_1 or check_2 or check_3 or check_4 or check_5 or check_6:
+            return 1000000
+        else:
+            return 0
+
+
+#======================================================================================================================#
+
 #======================================================================================================================#
 def add_state_id(element):
     '''
@@ -30,11 +119,20 @@ def interval_overlap(first_element_coordinate_min,first_element_coordinate_max,
     :param second_element_coordinate_max: the second interval max value, type(int)
     :return: 1 if there is an intersection, 0 if there is no intersection ,type(int)
     '''
+    if first_element_coordinate_min>first_element_coordinate_max:
+        dumb=first_element_coordinate_max
+        first_element_coordinate_max=first_element_coordinate_min
+        first_element_coordinate_min=dumb
+    #=================================================================#
+    if second_element_coordinate_min>second_element_coordinate_max:
+        dumb=second_element_coordinate_max
+        second_element_coordinate_max=second_element_coordinate_min
+        second_element_coordinate_min=dumb
+
     x1=first_element_coordinate_min
     x2 = first_element_coordinate_max  # we have interval a
     x3=second_element_coordinate_min
     x4 = second_element_coordinate_max  # we have interval b
-
     # first interval     [        ]
     # second interval    (        )
 
@@ -92,6 +190,9 @@ def connect_arrow_head_with_one_arrow(arrow_head):
             if element.get_name()!="state":
                 #straight arrow, loop back arrow, incline
                 intersection_between_arrow_head_and_arrow=area_of_intersection(arrow_head,element)
+                if element.get_name()=="incline arrow":
+                    intersection_between_arrow_head_and_arrow=area_of_intersection_with_incline_arrow(arrow_head,element)
+
                 if intersection_between_arrow_head_and_arrow > min_area:
                     min_area=intersection_between_arrow_head_and_arrow #keep this arrow and update min
                     if previous_element==None:
@@ -175,6 +276,7 @@ def get_src_state_for_incline_arrow_old_function():
     #                return element # return this state
     return -1
 #======================================================================================================================#
+#removed
 def get_src_state_for_incline_arrow(arrow_head,inclined_arrow):
     '''
     description : taking arrow head anchor and incline arrow anchor, getting the distance between the arrow head and
@@ -237,7 +339,6 @@ def get_src_state_for_incline_arrow(arrow_head,inclined_arrow):
             intersected_area=area_of_intersection(anchor_intersect_with_src_state,state)
             if intersected_area>0:
                 return state
-
 #======================================================================================================================#
 def get_distance_between_two_anchors(element_1,element_2):
     '''
@@ -359,14 +460,21 @@ def connect_anchors():
 
                     overlap_in_y = interval_overlap(element.get_ymin(), element.get_ymax(),
                                                     second_element.get_ymin(),second_element.get_ymax())
+
                     connected_area=overlap_in_x*overlap_in_y
+
+                    # special search for incline if i am an arrow head
+                    if second_key_=="incline arrow":
+                        connected_area=area_of_intersection_with_incline_arrow(element,second_element)
+                    if key=="incline arrow":
+                        connected_area=area_of_intersection_with_incline_arrow(second_element,element)
                     if connected_area>0:
-                        if key=="straight arrow":
-                            straight_arrow_area=get_anchor_area(element)
-                            shared_area_threshold=straight_arrow_area*0.5
-                            if connected_area >=shared_area_threshold:
-                                #this is a noise
-                                object_file.all_objects_as_dic[key].remove(element)#remove this element
+                        # if key=="straight arrow":
+                        #     straight_arrow_area=get_anchor_area(element)
+                        #     shared_area_threshold=straight_arrow_area*0.5
+                        #     if connected_area >=shared_area_threshold:
+                        #         #this is a noise
+                        #         object_file.all_objects_as_dic[key].remove(element)#remove this element
 
                         element.set_connected_id(
                             second_element.get_id())  # add the id of the big anchor as connected in the small anchor
@@ -641,9 +749,9 @@ def connect_transactions():
                 if x_element.get_name() == "loop back arrow":#if it's loop back arrow
                     src_element = dst_element # the src element is the dst element
                     con_element = get_state_condition(x_element) # get the state condition for this arrow
-                elif x_element.get_name()=="incline arrow":
-                    src_element=get_src_state_for_incline_arrow(arrow_head,x_element)
-                    con_element=get_state_condition_for_inclined_line(arrow_head,x_element)
+                # elif x_element.get_name()=="incline arrow":
+                #     src_element=get_src_state_for_incline_arrow(arrow_head,x_element)
+                #     con_element=get_state_condition_for_inclined_line(arrow_head,x_element)
                 else:# if it's not an loop back arrow
                     src_element = get_src_element(dst_element.get_id(), x_element.get_connected_anchor())# get the src element as the another satet of this arrow
                     con_element = get_state_condition(x_element)# get the state condition for this arrow
