@@ -13,6 +13,7 @@ all_objects_as_dic = {"/": [], "0": [], "1": [], "2": [], "3": [], "4": [], "5":
 transaction=[]
 undo_all_objects=[]
 original_image=0
+dumb_id=0
 safe_mode=1
 image=0
 image_copy=0
