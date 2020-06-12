@@ -4,7 +4,8 @@
   * don't use any tensorflow application when you run the exe, tensorflow runs on one main thread, this will lead to faliure in both programs.
   * image type -> .jpg .png .JPEG, .PNG not equal .png 
   * the input images shouldn't be small images like 280 * 280 or something like that, at least 800 * 600.
-  * the input images can't be sharpened, this lead to false/no predict, example http://madebyevan.com/fsm/ save images as sharpened images that need edit with paint.
+  * input image preferred to be 4:3 ratio
+  * the input images can't be sharpened, this lead to false/no predict, example http://madebyevan.com/fsm/ save images as sharpened images that needs edit with paint.
   * best performance with images 1600 * 1200.
   * input images resized to 1600 * 1200 from small images lead to incorrect predict.
   * no words in the image, it can lead to false predict.
